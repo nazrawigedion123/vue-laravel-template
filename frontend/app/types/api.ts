@@ -1,3 +1,9 @@
+export type RequestOptions = {
+  method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  body?: any
+  token?: string | null
+  query?: Record<string, string | number | boolean | undefined>
+}
 export type UserRole = {
   can_create_blog: boolean
   can_edit_blog: boolean
@@ -19,12 +25,7 @@ export type AuthResponse = {
   expires_in: number
 }
 
-export type Language = {
-  id: number
-  name: string
-  code: string
-  default: boolean
-}
+
 
 export type BlogSummary = {
   id: number

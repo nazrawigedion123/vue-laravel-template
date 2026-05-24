@@ -72,12 +72,12 @@ const stats = [
 .welcome-banner h1 {
   font-size: 2rem;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
 .welcome-banner p {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 1.125rem;
 }
 
@@ -88,10 +88,10 @@ const stats = [
 }
 
 .stat-card {
-  background: white;
+  background: var(--card-bg);
   padding: 1.5rem;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   gap: 1.25rem;
@@ -110,14 +110,14 @@ const stats = [
 
 .stat-label {
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--text-muted);
   margin-bottom: 0.25rem;
 }
 
 .stat-value {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .stat-trend {
@@ -147,17 +147,17 @@ const stats = [
 }
 
 .section {
-  background: white;
+  background: var(--card-bg);
   padding: 1.5rem;
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
 }
 
 .section h3 {
   font-size: 1.125rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .activity-list {
@@ -176,19 +176,19 @@ const stats = [
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: #3b82f6;
+  background-color: var(--color-primary);
   margin-top: 0.5rem;
 }
 
 .activity-content p {
   font-size: 0.9375rem;
-  color: #334155;
+  color: var(--text-primary);
   margin-bottom: 0.25rem;
 }
 
 .activity-content span {
   font-size: 0.8125rem;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .actions-buttons {
@@ -208,15 +208,15 @@ const stats = [
 }
 
 .action-btn:not(.secondary) {
-  background-color: #3b82f6;
+  background-color: var(--color-primary);
   color: white;
   border: none;
 }
 
 .action-btn.secondary {
-  background-color: #f1f5f9;
-  color: #475569;
-  border: 1px solid #e2e8f0;
+  background-color: var(--bg-surface);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
 }
 
 .action-btn:hover {

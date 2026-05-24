@@ -5,12 +5,15 @@
 </template>
 
 <script setup lang="ts">
-// Main entry point for the application
-const { loadUser } = useAuth()
+import { useThemeStore } from '~/store/theme';
 
-// Initialize auth state on mount
+const { loadUser } = useAuth()
+const themeStore = useThemeStore()
+
+// Initialize auth and theme on mount
 onMounted(async () => {
   await loadUser()
+  themeStore.applyThemeVariables(themeStore.currentTheme)
 })
 </script>
 
@@ -19,9 +22,11 @@ onMounted(async () => {
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-  color: #1e293b;
-  background-color: #f8fafc;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
+
 
 * {
   box-sizing: border-box;

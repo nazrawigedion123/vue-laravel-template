@@ -85,10 +85,11 @@ export const useAuthStore =defineStore('auth',()=>{
         // Store verifier in cookie for later
         const verifierCookie = useCookie('google_code_verifier', { maxAge: 600 })
         verifierCookie.value = verifier
+        
 
         const config = useRuntimeConfig()
-        const clientId = '450162713360-9j5n4trhdi4ljm2d5g4cjcidk15bvslo.apps.googleusercontent.com'
-        const redirectUri = 'http://localhost:3000/callback'
+        const clientId = config.public.googleClientID
+        const redirectUri =config.public.googleCallBack
         const scope = 'openid profile email'
         
         const googleUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth')

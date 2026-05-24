@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { Language } from '~/types/api'
-
+// import type { Language } from '~/types/api'
+import { useLanguages } from '#imports'
+import type { Language } from '~/types/language'
 const api = useApi()
 const auth = useAuth()
 const mode = ref<'login' | 'register'>('login')
@@ -12,11 +13,13 @@ const languageId = ref<number | null>(null)
 const message = ref('')
 const errorMessage = ref('')
 
-const { data: languages } = await useAsyncData('languages', () => api.request<Language[]>('/languages'))
-
-watchEffect(() => {
-  if (!languageId.value && languages.value?.length) {
-    languageId.value = languages.value.find((language) => language.default)?.id || languages.value[0].id
+// const { data: languages } = await useAsyncData('languages', () => api.request<Language[]>('/languages'))
+const { data: languages } = await useLanguages({
+  onResponse({ response }) {
+    const list = response._data
+    if (!languageId.value && list?.length) {
+      languageId.value = list.find((l: Language) => l.default)?.id || list[0].id
+    }
   }
 })
 

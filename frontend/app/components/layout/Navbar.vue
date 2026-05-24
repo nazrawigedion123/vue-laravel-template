@@ -12,8 +12,8 @@
 
       <div class="actions">
         <template v-if="!isAuthenticated">
-          <NuxtLink to="/login" class="btn btn-ghost">Log In</NuxtLink>
-          <NuxtLink to="/register" class="btn btn-primary">Sign Up</NuxtLink>
+          <NuxtLink to="accounts/login" class="btn btn-ghost">Log In</NuxtLink>
+          <NuxtLink to="accounts/register" class="btn btn-primary">Sign Up</NuxtLink>
         </template>
         <template v-else>
           <div class="user-profile">
@@ -21,25 +21,36 @@
             <button @click="logout" class="btn btn-outline btn-sm">Log Out</button>
           </div>
         </template>
+        <div class="theme-toggle">
+          <button @click="themeStore.toggleTheme" class="btn btn-ghost theme-btn" aria-label="Toggle Theme">
+            <span v-if="themeStore.currentTheme === 'dark'">☀️ Light</span>
+            <span v-else>🌙 Dark</span>
+          </button>
+        </div>
+
       </div>
     </div>
   </header>
 </template>
 
 <script setup>
+import { useThemeStore } from '~/store/theme';
+
 const { isAuthenticated, hasDashboardAccess, user, logout } = useAuth()
+const themeStore = useThemeStore();
 </script>
 
 <style scoped>
 .navbar {
-  background-color: white;
-  border-bottom: 1px solid #e2e8f0;
+  background-color: var(--navbar-bg);
+  border-bottom: 1px solid var(--border-color);
   height: 72px;
   display: flex;
   align-items: center;
   position: sticky;
   top: 0;
   z-index: 100;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .container {
@@ -61,7 +72,7 @@ const { isAuthenticated, hasDashboardAccess, user, logout } = useAuth()
 .brand-text {
   font-size: 1.5rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, #2563eb 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -73,13 +84,13 @@ const { isAuthenticated, hasDashboardAccess, user, logout } = useAuth()
 
 .nav-link {
   text-decoration: none;
-  color: #64748b;
+  color: var(--text-muted);
   font-weight: 500;
   transition: color 0.2s;
 }
 
 .nav-link:hover, .router-link-active {
-  color: #2563eb;
+  color: var(--color-primary);
 }
 
 .dashboard-link {
@@ -88,8 +99,23 @@ const { isAuthenticated, hasDashboardAccess, user, logout } = useAuth()
 
 .actions {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
   align-items: center;
+}
+
+.theme-toggle {
+  display: flex;
+  align-items: center;
+}
+
+.theme-btn {
+  padding: 0.5rem;
+  min-width: 80px;
+  justify-content: center;
+  font-size: 0.875rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 .user-profile {
@@ -100,7 +126,7 @@ const { isAuthenticated, hasDashboardAccess, user, logout } = useAuth()
 
 .user-email {
   font-size: 0.875rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .btn {
@@ -120,34 +146,34 @@ const { isAuthenticated, hasDashboardAccess, user, logout } = useAuth()
 }
 
 .btn-primary {
-  background-color: #2563eb;
+  background-color: var(--color-primary);
   color: white;
   border: none;
 }
 
 .btn-primary:hover {
-  background-color: #1d4ed8;
+  filter: brightness(1.1);
 }
 
 .btn-ghost {
-  color: #64748b;
+  color: var(--text-muted);
   background: transparent;
   border: none;
 }
 
 .btn-ghost:hover {
-  background-color: #f1f5f9;
-  color: #1e293b;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
 }
 
 .btn-outline {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   background: transparent;
   color: #ef4444;
 }
 
 .btn-outline:hover {
   background-color: #fef2f2;
-  border-color: #fecaca;
 }
+
 </style>

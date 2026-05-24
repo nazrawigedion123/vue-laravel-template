@@ -69,15 +69,15 @@ const { data: blogs } = await useAsyncData('dashboard-blogs', () =>
 .title-area h1 {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .title-area p {
-  color: #64748b;
+  color: var(--text-muted);
 }
 
 .btn-primary {
-  background-color: #2563eb;
+  background-color: var(--color-primary);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -87,9 +87,9 @@ const { data: blogs } = await useAsyncData('dashboard-blogs', () =>
 }
 
 .table-container {
-  background: white;
+  background: var(--card-bg);
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   overflow: hidden;
 }
 
@@ -100,24 +100,24 @@ const { data: blogs } = await useAsyncData('dashboard-blogs', () =>
 }
 
 .blog-table th {
-  background-color: #f8fafc;
+  background-color: var(--bg-surface);
   padding: 1rem 1.5rem;
   font-size: 0.875rem;
   font-weight: 600;
-  color: #64748b;
-  border-bottom: 1px solid #e2e8f0;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .blog-table td {
   padding: 1rem 1.5rem;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--border-color);
   font-size: 0.9375rem;
-  color: #334155;
+  color: var(--text-primary);
 }
 
 .blog-title {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .badge {
@@ -133,8 +133,8 @@ const { data: blogs } = await useAsyncData('dashboard-blogs', () =>
 }
 
 .badge-draft {
-  background-color: #f1f5f9;
-  color: #475569;
+  background-color: var(--bg-surface);
+  color: var(--text-muted);
 }
 
 .actions {
@@ -145,14 +145,15 @@ const { data: blogs } = await useAsyncData('dashboard-blogs', () =>
 .icon-btn {
   padding: 0.5rem;
   border-radius: 4px;
-  border: 1px solid #e2e8f0;
-  background: white;
+  border: 1px solid var(--border-color);
+  background: var(--bg-surface);
   cursor: pointer;
   font-size: 0.75rem;
+  color: var(--text-primary);
 }
 
 .icon-btn:hover {
-  background-color: #f8fafc;
+  filter: brightness(0.9);
 }
 
 .icon-btn.delete {

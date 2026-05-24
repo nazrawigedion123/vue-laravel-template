@@ -76,12 +76,12 @@ const { data: blogs, pending, error, refresh } = await useAsyncData(
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 3rem;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 2px solid var(--border-color);
   padding-bottom: 1.5rem;
 }
 
 .eyebrow {
-  color: #3b82f6;
+  color: var(--color-primary);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -92,16 +92,16 @@ const { data: blogs, pending, error, refresh } = await useAsyncData(
 h1 {
   font-size: 2.5rem;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-primary);
 }
 
 .lang-select {
   padding: 0.5rem 1rem;
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
-  background-color: white;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
   font-weight: 500;
-  color: #475569;
+  color: var(--text-primary);
 }
 
 .blog-grid {
@@ -111,13 +111,13 @@ h1 {
 }
 
 .blog-card {
-  background: white;
+  background: var(--card-bg);
   border-radius: 16px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s, background-color 0.3s;
 }
 
 .blog-card:hover {
@@ -132,37 +132,37 @@ h1 {
 
 .meta {
   font-size: 0.8125rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   margin-bottom: 0.75rem;
 }
 
 h2 {
   font-size: 1.25rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-primary);
   margin-bottom: 1rem;
   line-height: 1.4;
 }
 
 .summary {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.9375rem;
   line-height: 1.6;
 }
 
 .card-footer {
   padding: 1.25rem 1.5rem;
-  background-color: #f8fafc;
+  background-color: var(--bg-surface);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--border-color);
 }
 
 .stats {
   display: flex;
   gap: 1rem;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 
@@ -176,21 +176,21 @@ h2 {
 }
 
 .btn-secondary {
-  background-color: #3b82f6;
+  background-color: var(--color-primary);
   color: white;
 }
 
 .btn-secondary:hover {
-  background-color: #2563eb;
+  filter: brightness(1.1);
 }
 
 .empty-state {
   grid-column: 1 / -1;
   text-align: center;
   padding: 4rem 2rem;
-  background: white;
+  background: var(--bg-surface);
   border-radius: 16px;
-  border: 2px dashed #e2e8f0;
+  border: 2px dashed var(--border-color);
 }
 
 .empty-icon {
@@ -206,8 +206,8 @@ h2 {
 .spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid #f3f3f3;
-  border-top: 4px solid #3b82f6;
+  border: 4px solid var(--bg-surface);
+  border-top: 4px solid var(--color-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
