@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
 class Language extends Model
 {
     protected $fillable = ['name', 'code', 'default'];
@@ -17,6 +17,11 @@ class Language extends Model
      * The "booted" method of the model.
      * Replaces Django's save method overrides via Eloquent lifecycle hooks.
      */
+    public function frontendTranslations(): HasMany
+    {
+        // Laravel infers the foreign key as language_id automatically
+        return $this->hasMany(FrontendTranslation::class);
+    }
     protected static function booted()
     {
         // Intercept right before a record is written to MySQL

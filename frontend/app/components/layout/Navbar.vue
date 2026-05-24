@@ -1,3 +1,4 @@
+
 <template>
   <header class="navbar">
     <div class="container">
@@ -21,6 +22,23 @@
             <button @click="logout" class="btn btn-outline btn-sm">Log Out</button>
           </div>
         </template>
+
+         <div class="language-selector" v-if="languages?.length">
+          <select 
+            :value="languageId" 
+            @change="handleLanguageChange" 
+            class="select-dropdown"
+            aria-label="Select Language"
+          >
+            <option 
+              v-for="lang in languages" 
+              :key="lang.id" 
+              :value="lang.id"
+            >
+              {{ lang.name }} ({{ lang.code.toUpperCase() }})
+            </option>
+          </select>
+        </div> 
         <div class="theme-toggle">
           <button @click="themeStore.toggleTheme" class="btn btn-ghost theme-btn" aria-label="Toggle Theme">
             <span v-if="themeStore.currentTheme === 'dark'">☀️ Light</span>
@@ -28,16 +46,63 @@
           </button>
         </div>
 
+       
+
+       
+
       </div>
     </div>
   </header>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useThemeStore } from '~/store/theme';
+
+import { useLanguages } from '#imports';
+import { useLanguageStore } from '~/store/language';
 
 const { isAuthenticated, hasDashboardAccess, user, logout } = useAuth()
 const themeStore = useThemeStore();
+
+
+import {type Language } from '~/types/language';
+
+
+const languageId = ref<number|null>(null)
+const languageStore=useLanguageStore()
+
+const { data: languages } = await useLanguages({
+  onResponse({ response }) {
+    const list = response._data;
+    if (!languageId.value && list?.length) {
+      // Find matching index based on cookie preference, or default flag, or fallback to first
+      const preferred = list.find((l:Language) => l.code === languageStore.currentLanguagePreference) 
+                        || list.find((l:Language) => l.default) 
+                        || list[0];
+      
+      languageId.value = preferred.id;
+      
+      // Keep store synchronized with the active language code if unassigned
+      if (languageStore.currentLanguagePreference !== preferred.code) {
+        languageStore.setLanguagePreference(preferred.code, 'header');
+      }
+    }
+  }
+});
+
+// Sync selection changes back to the cookie/store layout
+const handleLanguageChange = (event: Event) => {
+  const target = event.target as HTMLSelectElement;
+  const selectedId = Number(target.value);
+  languageId.value = selectedId;
+
+  const selectedLang = languages.value?.find((l) => l.id === selectedId);
+  if (selectedLang) {
+    // Passing 'header' or your current route name context as the page parameter
+    languageStore.setLanguagePreference(selectedLang.code, 'header');
+  }
+};
+
 </script>
 
 <style scoped>
