@@ -40,13 +40,23 @@
       </form>
 
       <p class="footer-text">
-        Already have an account? <NuxtLink to="/login">Sign in</NuxtLink>
+        Already have an account? <NuxtLink to="/accounts/login">Sign in</NuxtLink>
       </p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+
+import { usePageStore } from '~/store/pageStore'
+
+definePageMeta({
+  middleware: [
+    () => {
+      usePageStore().setCurrentPage('register')
+    }
+  ]
+})
 const { register, loading } = useAuth()
 const router = useRouter()
 

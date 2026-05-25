@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
+
 class Language extends Model
 {
     protected $fillable = ['name', 'code', 'default'];
@@ -22,11 +23,12 @@ class Language extends Model
         // Laravel infers the foreign key as language_id automatically
         return $this->hasMany(FrontendTranslation::class);
     }
+
     protected static function booted()
     {
         // Intercept right before a record is written to MySQL
         static::saving(function (Language $language) {
-            
+
             if ($language->default) {
                 // Wrap in a database transaction matching Django's transaction.atomic()
                 DB::transaction(function () use ($language) {

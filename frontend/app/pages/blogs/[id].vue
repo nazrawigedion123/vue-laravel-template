@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import type { BlogDetail, ReactionType } from '~/types/api'
 
+import { usePageStore } from '~/store/pageStore'
+
+definePageMeta({
+  middleware: [
+    () => {
+      usePageStore().setCurrentPage('blog')
+    }
+  ]
+})
+
 const route = useRoute()
 const api = useApi()
 const auth = useAuth()

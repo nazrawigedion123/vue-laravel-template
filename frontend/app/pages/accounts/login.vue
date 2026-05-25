@@ -49,13 +49,23 @@
       </button>
 
       <p class="footer-text">
-        Don't have an account? <NuxtLink to="/register">Create one</NuxtLink>
+        Don't have an account? <NuxtLink to="/accounts/register">Create one</NuxtLink>
       </p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+
+import { usePageStore } from '~/store/pageStore'
+
+definePageMeta({
+  middleware: [
+    () => {
+      usePageStore().setCurrentPage('login')
+    }
+  ]
+})
 const { login, loginWithGoogle, loading } = useAuth()
 const router = useRouter()
 

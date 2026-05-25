@@ -1,13 +1,34 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
+use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
 {
+    #[OA\Post(
+        path: '/api/auth/register',
+        summary: 'Register a new user',
+        tags: ['Authentication'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email', 'password'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'user@example.com'),
+                    new OA\Property(property: 'password', type: 'string', minLength: 3, example: 'secret123'),
+                ],
+            ),
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'User registered successfully', content: new OA\JsonContent(ref: '#/components/schemas/TokenResponse')),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ],
+    )]
     public function register(Request $request)
     {
         $request->validate([
@@ -17,16 +38,35 @@ class AuthController extends Controller
 
         $user = User::create([
             'email' => $request->email,
-            'password' => Hash::make($request->password), // Django's set_password replacement
+            'password' => Hash::make($request->password),
         ]);
 
-        // Optional: Attach default empty roles profile automatically
         $user->role()->create();
 
         $token = auth('api')->login($user);
+
         return $this->respondWithToken($token);
     }
 
+    #[OA\Post(
+        path: '/api/auth/login',
+        summary: 'Log in with email and password',
+        tags: ['Authentication'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email', 'password'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'user@example.com'),
+                    new OA\Property(property: 'password', type: 'string', example: 'secret123'),
+                ],
+            ),
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Login successful', content: new OA\JsonContent(ref: '#/components/schemas/TokenResponse')),
+            new OA\Response(response: 401, description: 'Invalid credentials', content: new OA\JsonContent(ref: '#/components/schemas/ErrorResponse')),
+        ],
+    )]
     public function login(Request $request)
     {
         $credentials = $request->validate([
@@ -34,7 +74,6 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        // This automatically checks email, decrypts and hashes password to verify matching
         if (! $token = auth('api')->attempt($credentials)) {
             return response()->json(['error' => 'Unauthorized / Invalid Credentials'], 401);
         }
@@ -42,18 +81,56 @@ class AuthController extends Controller
         return $this->respondWithToken($token);
     }
 
+    #[OA\Get(
+        path: '/api/auth/me',
+        summary: 'Get current authenticated user',
+        tags: ['Authentication'],
+        security: [['bearerAuth' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Authenticated user data', content: new OA\JsonContent(ref: '#/components/schemas/User')),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+        ],
+    )]
     public function me()
     {
-        // Returns currently authenticated user with their specific permission payload
         return response()->json(auth('api')->user()->load('role'));
     }
 
+    #[OA\Post(
+        path: '/api/auth/logout',
+        summary: 'Log out the current user',
+        tags: ['Authentication'],
+        security: [['bearerAuth' => []]],
+        responses: [
+            new OA\Response(response: 200, description: 'Successfully logged out', content: new OA\JsonContent(ref: '#/components/schemas/MessageResponse')),
+        ],
+    )]
     public function logout()
     {
         auth('api')->logout();
+
         return response()->json(['message' => 'Successfully logged out']);
     }
 
+    #[OA\Post(
+        path: '/api/auth/google/callback',
+        summary: 'Google OAuth callback',
+        tags: ['Authentication'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['code', 'code_verifier'],
+                properties: [
+                    new OA\Property(property: 'code', type: 'string', example: '4/0AeaYSHB...'),
+                    new OA\Property(property: 'code_verifier', type: 'string', example: 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk'),
+                ],
+            ),
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Google login successful', content: new OA\JsonContent(ref: '#/components/schemas/TokenResponse')),
+            new OA\Response(response: 401, description: 'Failed to exchange code or fetch user info'),
+        ],
+    )]
     public function googleCallback(Request $request)
     {
         $request->validate([
@@ -61,7 +138,6 @@ class AuthController extends Controller
             'code_verifier' => 'required',
         ]);
 
-        // 1. Exchange code for access token
         $response = Http::post(env('GOOGLE_TOKEN_URL'), [
             'client_id' => env('SOCIAL_AUTH_GOOGLE_CLIENT_ID'),
             'client_secret' => env('SOCIAL_AUTH_GOOGLE_SECRET'),
@@ -77,7 +153,6 @@ class AuthController extends Controller
 
         $accessToken = $response->json()['access_token'];
 
-        // 2. Get user info from Google
         $userResponse = Http::withToken($accessToken)->get(env('GOOGLE_USERINFO_URL'));
 
         if ($userResponse->failed()) {
@@ -87,10 +162,9 @@ class AuthController extends Controller
         $googleUser = $userResponse->json();
         $email = $googleUser['email'];
 
-        // 3. Find or create user
         $user = User::where('email', $email)->first();
 
-        if (!$user) {
+        if (! $user) {
             $user = User::create([
                 'email' => $email,
                 'first_name' => $googleUser['given_name'] ?? null,
@@ -101,8 +175,8 @@ class AuthController extends Controller
             $user->role()->create();
         }
 
-        // 4. Issue JWT
         $token = auth('api')->login($user);
+
         return $this->respondWithToken($token);
     }
 
@@ -111,7 +185,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth('api')->factory()->getTTL() * 60 // Default expiration window
+            'expires_in' => auth('api')->factory()->getTTL() * 60,
         ]);
     }
 }

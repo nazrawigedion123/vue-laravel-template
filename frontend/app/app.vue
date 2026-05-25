@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { useThemeStore } from '~/store/theme';
+import { useThemeStore } from '~/store/themeStore';
 
 const { loadUser } = useAuth()
 const themeStore = useThemeStore()

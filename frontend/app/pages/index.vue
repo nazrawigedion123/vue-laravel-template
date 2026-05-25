@@ -1,14 +1,29 @@
 <script setup lang="ts">
 import type { BlogSummary } from '~/types/api'
+import { usePageStore } from '~/store/pageStore'
+import { useAuth } from '#imports'
+
+
+definePageMeta({
+  middleware: [
+    () => {
+      usePageStore().setCurrentPage('home')
+    }
+  ]
+})
 
 const api = useApi()
 const lang = ref('en')
-
+const auth=useAuth()
 const { data: blogs, pending, error, refresh } = await useAsyncData(
   'blogs',
   () => api.request<BlogSummary[]>('/blogs', { query: { lang: lang.value } }),
   { watch: [lang] },
 )
+
+const handleRefresh = () => {
+  refresh(); // Call your existing function without the parameter
+}
 </script>
 
 <template>
@@ -34,7 +49,7 @@ const { data: blogs, pending, error, refresh } = await useAsyncData(
       
       <div v-else-if="error" class="error-alert">
         <p>Could not load blogs. Please ensure the backend server is running.</p>
-        <button @click="refresh" class="btn btn-outline">Retry</button>
+        <button @click="handleRefresh" class="btn btn-outline">Retry</button>
       </div>
 
       <section v-else class="blog-grid">
@@ -57,7 +72,7 @@ const { data: blogs, pending, error, refresh } = await useAsyncData(
           <div class="empty-icon">📂</div>
           <h2>No blogs found</h2>
           <p>Be the first to share something amazing!</p>
-          <NuxtLink v-if="hasDashboardAccess" to="/dashboard/blogs" class="btn btn-primary">Create Post</NuxtLink>
+          <NuxtLink v-if="auth.hasDashboardAccess" to="/dashboard/blogs" class="btn btn-primary">Create Post</NuxtLink>
         </div>
       </section>
     </main>

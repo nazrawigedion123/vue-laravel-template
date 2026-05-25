@@ -3,18 +3,22 @@
   <header class="navbar">
     <div class="container">
       <NuxtLink to="/" class="brand">
-        <span class="brand-text">VueTemplate</span>
+        <span class="brand-text">VueTemplate {{ pageStore.currentPage }}</span>
       </NuxtLink>
 
       <nav class="nav-links">
-        <NuxtLink to="/" class="nav-link">Home</NuxtLink>
+        <NuxtLink 
+        to="/" 
+        class="nav-link" 
+    
+        >Home</NuxtLink>
         <NuxtLink v-if="hasDashboardAccess" to="/dashboard" class="nav-link dashboard-link">Dashboard</NuxtLink>
       </nav>
 
       <div class="actions">
         <template v-if="!isAuthenticated">
-          <NuxtLink to="accounts/login" class="btn btn-ghost">Log In</NuxtLink>
-          <NuxtLink to="accounts/register" class="btn btn-primary">Sign Up</NuxtLink>
+          <NuxtLink to="/accounts/login" class="btn btn-ghost">Sign In</NuxtLink>
+          <!-- <NuxtLink to="/accounts/register" class="btn btn-primary">Sign Up</NuxtLink> -->
         </template>
         <template v-else>
           <div class="user-profile">
@@ -56,11 +60,12 @@
 </template>
 
 <script setup lang="ts">
-import { useThemeStore } from '~/store/theme';
+import { useThemeStore } from '~/store/themeStore';
 
 import { useLanguages } from '#imports';
-import { useLanguageStore } from '~/store/language';
-
+import { useLanguageStore } from '~/store/languageStore';
+import { usePageStore } from '~/store/pageStore';
+const pageStore=usePageStore();
 const { isAuthenticated, hasDashboardAccess, user, logout } = useAuth()
 const themeStore = useThemeStore();
 
