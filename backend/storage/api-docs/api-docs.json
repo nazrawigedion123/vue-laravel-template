@@ -980,7 +980,7 @@
                     },
                     "image": {
                         "type": "string",
-                        "example": "http://localhost:8000/storage/images/photo.jpg",
+                        "example": "http://localhost:8000/media/images/photo.jpg",
                         "nullable": true
                     },
                     "title": {

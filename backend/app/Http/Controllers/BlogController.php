@@ -6,6 +6,7 @@ use App\Models\Blog;
 use App\Models\Language;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
 
 class BlogController extends Controller
@@ -45,7 +46,7 @@ class BlogController extends Controller
                 'sections' => $blog->sections->map(fn ($section) => [
                     'id' => $section->id,
                     'order' => $section->order,
-                    'image' => $section->image ? asset('storage/'.$section->image) : null,
+                    'image' => $section->image ? Storage::disk('public')->url($section->image) : null,
                     'title' => $section->getTitle($lang),
                     'content' => $section->getContent($lang),
                 ]),
@@ -188,12 +189,23 @@ class BlogController extends Controller
             $translations = $request->translations;
 
             if (is_string($translations)) {
-                $translations = json_decode($translations, true);
+                $decoded = json_decode($translations, true);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    return response()->json([
+                        'message' => 'The translations field contains invalid JSON.',
+                        'errors' => ['translations' => ['JSON parse error: ' . json_last_error_msg()]]
+                    ], 422);
+                }
+                $translations = $decoded;
             }
 
             if (is_array($translations)) {
                 $translations = array_map(function ($item) {
-                    return is_string($item) ? json_decode($item, true) : $item;
+                    if (is_string($item)) {
+                        $decoded = json_decode($item, true);
+                        return json_last_error() === JSON_ERROR_NONE ? $decoded : $item;
+                    }
+                    return $item;
                 }, $translations);
                 $request->merge(['translations' => $translations]);
             }
@@ -324,7 +336,7 @@ class BlogController extends Controller
             'sections' => $blog->sections->map(fn ($section) => [
                 'id' => $section->id,
                 'order' => $section->order,
-                'image' => $section->image ? asset('storage/'.$section->image) : null,
+                'image' => $section->image ? Storage::disk('public')->url($section->image) : null,
                 'title' => $section->getTitle($lang),
                 'content' => $section->getContent($lang),
             ]),

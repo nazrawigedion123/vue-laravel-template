@@ -85,7 +85,7 @@ use OpenApi\Attributes as OA;
     properties: [
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'order', type: 'integer', example: 0),
-        new OA\Property(property: 'image', type: 'string', nullable: true, example: 'http://localhost:8000/storage/images/photo.jpg'),
+        new OA\Property(property: 'image', type: 'string', nullable: true, example: 'http://localhost:8000/media/images/photo.jpg'),
         new OA\Property(property: 'title', type: 'string', example: 'Section Title'),
         new OA\Property(property: 'content', type: 'string', example: 'Section content...'),
     ],
