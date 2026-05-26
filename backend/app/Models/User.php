@@ -2,8 +2,7 @@
 
 namespace App\Models;
 
-namespace App\Models;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -11,11 +10,11 @@ use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
 {
-    use Notifiable;
+    use Notifiable, HasFactory;
 
     protected $fillable = ['email', 'password', 'first_name','last_name','is_active', 'is_superuser', 'is_staff'];
     protected $hidden = ['password'];
-    
+
 
     // --- JWT Required Methods ---
     public function getJWTIdentifier() {

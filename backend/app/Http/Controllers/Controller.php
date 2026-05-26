@@ -47,10 +47,14 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'id', type: 'integer', example: 1),
         new OA\Property(property: 'title', type: 'string', example: 'My Blog Post'),
         new OA\Property(property: 'summary', type: 'string', example: 'This is a summary...'),
+        new OA\Property(property: 'content', type: 'string', example: 'Full content of the blog post...'),
         new OA\Property(property: 'comment_count', type: 'integer', example: 5),
         new OA\Property(property: 'reaction_count', type: 'integer', example: 12),
         new OA\Property(property: 'author', type: 'string', format: 'email', example: 'author@example.com'),
         new OA\Property(property: 'published_at', type: 'string', nullable: true, example: '2024-01-01T00:00:00Z'),
+        new OA\Property(property: 'sections', type: 'array', items: new OA\Items(ref: '#/components/schemas/BlogSection')),
+        new OA\Property(property: 'comments', type: 'array', items: new OA\Items(ref: '#/components/schemas/BlogComment')),
+        new OA\Property(property: 'translations', type: 'array', items: new OA\Items(ref: '#/components/schemas/BlogTranslation')),
     ],
 )]
 #[OA\Schema(
@@ -64,6 +68,16 @@ use OpenApi\Attributes as OA;
         new OA\Property(property: 'reaction_count', type: 'integer', example: 12),
         new OA\Property(property: 'sections', type: 'array', items: new OA\Items(ref: '#/components/schemas/BlogSection')),
         new OA\Property(property: 'comments', type: 'array', items: new OA\Items(ref: '#/components/schemas/BlogComment')),
+    ],
+)]
+#[OA\Schema(
+    schema: 'BlogTranslation',
+    properties: [
+        new OA\Property(property: 'language_id', type: 'integer', example: 1),
+        new OA\Property(property: 'language_code', type: 'string', example: 'en'),
+        new OA\Property(property: 'title', type: 'string', example: 'Post Title'),
+        new OA\Property(property: 'summary', type: 'string', nullable: true, example: 'Post summary...'),
+        new OA\Property(property: 'content', type: 'string', example: 'Post content...'),
     ],
 )]
 #[OA\Schema(

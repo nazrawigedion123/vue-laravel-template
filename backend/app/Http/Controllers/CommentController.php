@@ -62,4 +62,34 @@ class CommentController extends Controller
             ],
         ], 201);
     }
+
+    #[OA\Delete(
+        path: '/api/comments/{id}',
+        summary: 'Delete a comment',
+        tags: ['Comments'],
+        security: [['bearerAuth' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', description: 'Comment ID', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Comment deleted', content: new OA\JsonContent(ref: '#/components/schemas/MessageResponse')),
+            new OA\Response(response: 401, description: 'Unauthenticated'),
+            new OA\Response(response: 403, description: 'Forbidden'),
+            new OA\Response(response: 404, description: 'Comment not found'),
+        ],
+    )]
+    public function destroy(string $id): JsonResponse
+    {
+        $comment = BlogComment::findOrFail($id);
+
+        // Check if user is owner or admin (assuming admin has certain role or just owner for now)
+        if ($comment->user_id !== auth('api')->id()) {
+             return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        $comment->blog->decrement('comment_count');
+        $comment->delete();
+
+        return response()->json(['message' => 'Comment deleted successfully.']);
+    }
 }

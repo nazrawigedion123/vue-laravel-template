@@ -268,23 +268,38 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "title",
-                                    "content",
-                                    "language_id"
+                                    "translations"
                                 ],
                                 "properties": {
-                                    "title": {
-                                        "type": "string",
-                                        "example": "My New Blog",
-                                        "maxLength": 200
-                                    },
-                                    "content": {
-                                        "type": "string",
-                                        "example": "Full content of the blog post..."
-                                    },
-                                    "language_id": {
-                                        "type": "integer",
-                                        "example": 1
+                                    "translations": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "language_id",
+                                                "title",
+                                                "content"
+                                            ],
+                                            "properties": {
+                                                "language_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "title": {
+                                                    "type": "string",
+                                                    "example": "My New Blog",
+                                                    "maxLength": 200
+                                                },
+                                                "summary": {
+                                                    "type": "string",
+                                                    "example": "Short summary of the blog post..."
+                                                },
+                                                "content": {
+                                                    "type": "string",
+                                                    "example": "Full content of the blog post..."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
                                     }
                                 },
                                 "type": "object"
@@ -308,6 +323,108 @@
                     },
                     "403": {
                         "description": "Forbidden - insufficient permissions"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/blogs/{id}/sections": {
+            "post": {
+                "tags": [
+                    "Blogs"
+                ],
+                "summary": "Add a section to a blog post",
+                "operationId": "01b970d65287ff9aba0bae6f4a133539",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Blog post ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "order",
+                                    "translations"
+                                ],
+                                "properties": {
+                                    "order": {
+                                        "type": "integer",
+                                        "example": 1
+                                    },
+                                    "image": {
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "translations": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "language_id",
+                                                "title",
+                                                "content"
+                                            ],
+                                            "properties": {
+                                                "language_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "title": {
+                                                    "type": "string",
+                                                    "example": "Section Title",
+                                                    "maxLength": 200
+                                                },
+                                                "content": {
+                                                    "type": "string",
+                                                    "example": "Section content..."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Section added",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Blog not found"
+                    },
+                    "422": {
+                        "description": "Validation Error"
                     }
                 },
                 "security": [
@@ -351,7 +468,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/BlogDetail"
+                                    "$ref": "#/components/schemas/BlogListItem"
                                 }
                             }
                         }
@@ -384,18 +501,35 @@
                         "application/json": {
                             "schema": {
                                 "properties": {
-                                    "title": {
-                                        "type": "string",
-                                        "example": "Updated Title",
-                                        "maxLength": 200
-                                    },
-                                    "content": {
-                                        "type": "string",
-                                        "example": "Updated content..."
-                                    },
-                                    "language_id": {
-                                        "type": "integer",
-                                        "example": 1
+                                    "translations": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "language_id",
+                                                "title",
+                                                "content"
+                                            ],
+                                            "properties": {
+                                                "language_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "title": {
+                                                    "type": "string",
+                                                    "example": "Updated Title",
+                                                    "maxLength": 200
+                                                },
+                                                "summary": {
+                                                    "type": "string",
+                                                    "example": "Updated summary..."
+                                                },
+                                                "content": {
+                                                    "type": "string",
+                                                    "example": "Updated content..."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
                                     }
                                 },
                                 "type": "object"
@@ -422,6 +556,9 @@
                     },
                     "404": {
                         "description": "Blog not found"
+                    },
+                    "422": {
+                        "description": "Validation Error"
                     }
                 },
                 "security": [
@@ -490,6 +627,52 @@
                     },
                     "404": {
                         "description": "Blog not found"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/comments/{id}": {
+            "delete": {
+                "tags": [
+                    "Comments"
+                ],
+                "summary": "Delete a comment",
+                "operationId": "721e5dc0c32ef81276203df965767606",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Comment ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Comment deleted",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Comment not found"
                     }
                 },
                 "security": [
@@ -673,6 +856,10 @@
                         "type": "string",
                         "example": "This is a summary..."
                     },
+                    "content": {
+                        "type": "string",
+                        "example": "Full content of the blog post..."
+                    },
                     "comment_count": {
                         "type": "integer",
                         "example": 5
@@ -690,6 +877,24 @@
                         "type": "string",
                         "example": "2024-01-01T00:00:00Z",
                         "nullable": true
+                    },
+                    "sections": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BlogSection"
+                        }
+                    },
+                    "comments": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BlogComment"
+                        }
+                    },
+                    "translations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BlogTranslation"
+                        }
                     }
                 },
                 "type": "object"
@@ -733,6 +938,32 @@
                         "items": {
                             "$ref": "#/components/schemas/BlogComment"
                         }
+                    }
+                },
+                "type": "object"
+            },
+            "BlogTranslation": {
+                "properties": {
+                    "language_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "language_code": {
+                        "type": "string",
+                        "example": "en"
+                    },
+                    "title": {
+                        "type": "string",
+                        "example": "Post Title"
+                    },
+                    "summary": {
+                        "type": "string",
+                        "example": "Post summary...",
+                        "nullable": true
+                    },
+                    "content": {
+                        "type": "string",
+                        "example": "Post content..."
                     }
                 },
                 "type": "object"

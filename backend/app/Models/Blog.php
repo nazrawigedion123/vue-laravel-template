@@ -70,6 +70,14 @@ class Blog extends Model
         return $t ? ($t->title ?? '(untitled)') : '(untitled)';
     }
 
+    public function getSummary(?string $langCode = null): string {
+        $t = $this->getTranslation($langCode);
+        if ($t && $t->summary) {
+            return $t->summary;
+        }
+        return substr($this->getContent($langCode), 0, 150).'...';
+    }
+
     public function getContent(?string $langCode = null): string {
         $t = $this->getTranslation($langCode);
         return $t ? ($t->content ?? '') : '';

@@ -118,6 +118,21 @@ return [
             'replace_placeholders' => true,
         ],
 
+        'structured' => [
+            'driver' => 'monolog',
+            'level' => env('LOG_LEVEL', 'debug'),
+            'handler' => StreamHandler::class,
+            'formatter' => \Monolog\Formatter\JsonFormatter::class,
+            'handler_with' => [
+                'stream' => storage_path('logs/structured.log'),
+            ],
+            'processors' => [
+                PsrLogMessageProcessor::class,
+                \Monolog\Processor\WebProcessor::class,
+                \Monolog\Processor\MemoryUsageProcessor::class,
+            ],
+        ],
+
         'null' => [
             'driver' => 'monolog',
             'handler' => NullHandler::class,

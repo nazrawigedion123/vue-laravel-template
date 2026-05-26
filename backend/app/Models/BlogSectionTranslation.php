@@ -5,15 +5,22 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class BlogTranslation extends Model
+class BlogSectionTranslation extends Model
 {
-    protected $fillable = ['blog_id', 'language_id', 'title', 'content'];
+    protected $fillable = [
+        'blog_section_id',
+        'language_id',
+        'title',
+        'content',
+    ];
 
-    public function blog(): BelongsTo {
-        return $this->belongsTo(Blog::class);
+    public function blogSection(): BelongsTo
+    {
+        return $this->belongsTo(BlogSection::class);
     }
 
-    public function language(): BelongsTo {
-        return $this->belongsTo(Language::class); // Assumes you have a Language Model setup
+    public function language(): BelongsTo
+    {
+        return $this->belongsTo(Language::class);
     }
 }

@@ -20,8 +20,12 @@ Route::middleware('auth:api')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
 
     Route::post('/blogs/{id}/comment', [CommentController::class, 'store']);
+    Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
     Route::post('/blogs/{id}/react', [ReactionController::class, 'toggle']);
 
-    Route::middleware('can:create-blog')->post('/blogs', [BlogController::class, 'store']);
+    Route::middleware('can:create-blog')->group(function () {
+        Route::post('/blogs', [BlogController::class, 'store']);
+        Route::post('/blogs/{id}/sections', [BlogController::class, 'addSection']);
+    });
     Route::middleware('can:edit-blog')->put('/blogs/{id}', [BlogController::class, 'update']);
 });
