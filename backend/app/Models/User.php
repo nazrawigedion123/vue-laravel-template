@@ -33,6 +33,7 @@ class User extends Authenticatable implements JWTSubject
     return $this->hasOne(UserRole::class, 'user_id')->withDefault([
         'can_create_blog' => false,
         'can_edit_blog'   => false,
+        'can_delete_blog'=>false,
         // all other permissions default to false
     ]);
 }
@@ -41,6 +42,12 @@ class User extends Authenticatable implements JWTSubject
     public function canCreateBlog(): bool {
         if ($this->is_superuser) return true;
         return $this->role?->can_create_blog ?? false;
+    }
+
+    public function canDeleteBlog(): bool{
+        if ($this->is_superuser) return true;
+        return $this->role?->can_delete_blog?? false;
+
     }
 
     public function canEditBlog(): bool {

@@ -17,15 +17,17 @@ Route::post('/auth/google/callback', [AuthController::class, 'googleCallback']);
 
 Route::middleware('auth:api')->group(function () {
     Route::post('/auth/logout', [AuthController::class, 'logout']);
-    Route::get('/auth/me', [AuthController::class, 'me']);
-
-    Route::post('/blogs/{id}/comment', [CommentController::class, 'store']);
+    Route::get('/auth/me', [AuthController::class, 'me']);   
     Route::delete('/comments/{id}', [CommentController::class, 'destroy']);
     Route::post('/blogs/{id}/react', [ReactionController::class, 'toggle']);
 
     Route::middleware('can:create-blog')->group(function () {
+        Route::post('/blogs/{id}/comment', [CommentController::class, 'store']);
         Route::post('/blogs', [BlogController::class, 'store']);
         Route::post('/blogs/{id}/sections', [BlogController::class, 'addSection']);
+    });
+    Route::middleware('can:delete-blog')->group(function(){
+         Route::delete('/blogs/{id}', [BlogController::class, 'destroy']);
     });
     Route::middleware('can:edit-blog')->put('/blogs/{id}', [BlogController::class, 'update']);
 });

@@ -1,0 +1,21 @@
+{
+    "intelephense.files.maxSize": 5000000,
+    "intelephense.telemetry.enabled": false,
+    "intelephense.completion.insertUseDeclaration": true,
+    "php.suggest.basic": false,
+    
+    // Xdebug settings
+    "php.debug.executablePath": "",
+    "php.validate.enable": true,
+    "php.validate.run": "onType",
+    
+    // Docker specific
+    "docker.dockerPath": "docker",
+    "docker.composeFile": "docker-compose.yml",
+    
+    // File watching
+    "files.watcherExclude": {
+        "**/vendor/**": true,
+        "**/node_modules/**": true
+    }
+}

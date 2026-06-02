@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
 
+
 class BlogController extends Controller
 {
     #[OA\Get(
@@ -355,5 +356,29 @@ class BlogController extends Controller
                 'content' => $t->content,
             ]),
         ]);
+    }
+
+    #[OA\Delete(
+        path: '/api/blogs/{id}',
+        summary: 'Delete a single blog post by ID',
+        tags: ['Blogs'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', description: 'Blog post ID', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Blog post deleted'),
+            new OA\Response(response: 404, description: 'Blog not found'),
+        ],
+    )]
+    public function delete(Request $request, string $id): JsonResponse
+    {
+    // 1. Find the blog post by ID, or throw a 404 error if it doesn't exist
+    $blog = Blog::findOrFail($id);
+
+    // 2. Delete the record from the database
+    $blog->delete();
+
+    // 3. Return a success JSON response (Double quotes allow $id to be parsed)
+    return response()->json(null, 204); // 200 OK or 204 No Content
     }
 }

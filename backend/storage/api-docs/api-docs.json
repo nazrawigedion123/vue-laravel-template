@@ -566,6 +566,32 @@
                         "bearerAuth": []
                     }
                 ]
+            },
+            "delete": {
+                "tags": [
+                    "Blogs"
+                ],
+                "summary": "Delete a single blog post by ID",
+                "operationId": "94482d5e3f67a6c09ea943fb7c590b92",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Blog post ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Blog post deleted"
+                    },
+                    "404": {
+                        "description": "Blog not found"
+                    }
+                }
             }
         },
         "/api/blogs/{id}/comment": {

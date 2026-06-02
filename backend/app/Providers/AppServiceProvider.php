@@ -23,5 +23,6 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::define('create-blog', fn (User $user): bool => $user->canCreateBlog());
         Gate::define('edit-blog', fn (User $user): bool => $user->canEditBlog());
+        Gate::define('delete-blog', fn (User $user):bool =>$user->canDeleteBlog());
     }
 }
