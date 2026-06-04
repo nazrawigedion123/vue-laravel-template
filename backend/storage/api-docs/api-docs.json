@@ -230,26 +230,53 @@
                 "operationId": "9819e5802278e060898795fe3c919599",
                 "parameters": [
                     {
-                        "name": "lang",
+                        "name": "page",
                         "in": "query",
-                        "description": "Language code (e.g., en, ms)",
+                        "description": "Page number",
                         "required": false,
                         "schema": {
-                            "type": "string",
-                            "default": "en"
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "size",
+                        "in": "query",
+                        "description": "Items per page",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "default": 10
                         }
                     }
                 ],
                 "responses": {
                     "200": {
-                        "description": "List of blog posts",
+                        "description": "List of blog posts with pagination",
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "type": "array",
-                                    "items": {
-                                        "$ref": "#/components/schemas/BlogListItem"
-                                    }
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/components/schemas/BlogListItem"
+                                            }
+                                        },
+                                        "currentPage": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "totalPage": {
+                                            "type": "integer",
+                                            "example": 5
+                                        },
+                                        "totalItems": {
+                                            "type": "integer",
+                                            "example": 50
+                                        }
+                                    },
+                                    "type": "object"
                                 }
                             }
                         }
@@ -450,16 +477,6 @@
                         "schema": {
                             "type": "integer"
                         }
-                    },
-                    {
-                        "name": "lang",
-                        "in": "query",
-                        "description": "Language code (e.g., en, ms)",
-                        "required": false,
-                        "schema": {
-                            "type": "string",
-                            "default": "en"
-                        }
                     }
                 ],
                 "responses": {
@@ -572,7 +589,7 @@
                     "Blogs"
                 ],
                 "summary": "Delete a single blog post by ID",
-                "operationId": "94482d5e3f67a6c09ea943fb7c590b92",
+                "operationId": "9fb0bb3fc65e987a03d2b5ecdda4489d",
                 "parameters": [
                     {
                         "name": "id",
@@ -585,7 +602,7 @@
                     }
                 ],
                 "responses": {
-                    "200": {
+                    "204": {
                         "description": "Blog post deleted"
                     },
                     "404": {
@@ -874,18 +891,6 @@
                         "type": "integer",
                         "example": 1
                     },
-                    "title": {
-                        "type": "string",
-                        "example": "My Blog Post"
-                    },
-                    "summary": {
-                        "type": "string",
-                        "example": "This is a summary..."
-                    },
-                    "content": {
-                        "type": "string",
-                        "example": "Full content of the blog post..."
-                    },
                     "comment_count": {
                         "type": "integer",
                         "example": 5
@@ -931,14 +936,6 @@
                         "type": "integer",
                         "example": 1
                     },
-                    "title": {
-                        "type": "string",
-                        "example": "My Blog Post"
-                    },
-                    "content": {
-                        "type": "string",
-                        "example": "Full content of the blog post..."
-                    },
                     "author": {
                         "type": "string",
                         "format": "email",
@@ -953,6 +950,10 @@
                         "type": "integer",
                         "example": 12
                     },
+                    "comment_count": {
+                        "type": "integer",
+                        "example": 5
+                    },
                     "sections": {
                         "type": "array",
                         "items": {
@@ -963,6 +964,12 @@
                         "type": "array",
                         "items": {
                             "$ref": "#/components/schemas/BlogComment"
+                        }
+                    },
+                    "translations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BlogTranslation"
                         }
                     }
                 },
@@ -980,7 +987,8 @@
                     },
                     "title": {
                         "type": "string",
-                        "example": "Post Title"
+                        "example": "Post Title",
+                        "nullable": true
                     },
                     "summary": {
                         "type": "string",
@@ -989,7 +997,8 @@
                     },
                     "content": {
                         "type": "string",
-                        "example": "Post content..."
+                        "example": "Post content...",
+                        "nullable": true
                     }
                 },
                 "type": "object"
@@ -1009,13 +1018,34 @@
                         "example": "http://localhost:8000/media/images/photo.jpg",
                         "nullable": true
                     },
+                    "translations": {
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BlogSectionTranslation"
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "BlogSectionTranslation": {
+                "properties": {
+                    "language_id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "language_code": {
+                        "type": "string",
+                        "example": "en"
+                    },
                     "title": {
                         "type": "string",
-                        "example": "Section Title"
+                        "example": "Section Title",
+                        "nullable": true
                     },
                     "content": {
                         "type": "string",
-                        "example": "Section content..."
+                        "example": "Section content...",
+                        "nullable": true
                     }
                 },
                 "type": "object"

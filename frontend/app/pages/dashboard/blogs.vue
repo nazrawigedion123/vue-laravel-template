@@ -46,11 +46,17 @@ definePageMeta({
   middleware: ['admin']
 })
 
-const api = useApi()
+import {useBlogStore} from '~/store/blogStore'
+// const api = useApi()
+const blogStore = useBlogStore();
+const { blogs } = storeToRefs(blogStore); // Makes blogs reactive
+const { getBlogs } = blogStore;
 
-const { data: blogs } = await useAsyncData('dashboard-blogs', () => 
-  api.request('/blogs')
-)
+// Call the async function properly
+await getBlogs();
+// const { data: blogs } = await useAsyncData('dashboard-blogs', () => 
+//   api.request('/blogs')
+// )
 </script>
 
 <style scoped>

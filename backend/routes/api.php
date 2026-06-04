@@ -25,9 +25,11 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/blogs/{id}/comment', [CommentController::class, 'store']);
         Route::post('/blogs', [BlogController::class, 'store']);
         Route::post('/blogs/{id}/sections', [BlogController::class, 'addSection']);
+       
     });
     Route::middleware('can:delete-blog')->group(function(){
-         Route::delete('/blogs/{id}', [BlogController::class, 'destroy']);
+       Route::delete('/blogs/{id}', [BlogController::class, 'destroy']);
+       
     });
     Route::middleware('can:edit-blog')->put('/blogs/{id}', [BlogController::class, 'update']);
 });

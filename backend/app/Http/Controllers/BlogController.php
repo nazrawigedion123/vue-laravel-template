@@ -17,29 +17,39 @@ class BlogController extends Controller
         summary: 'Get all blog posts',
         tags: ['Blogs'],
         parameters: [
-            new OA\Parameter(name: 'lang', in: 'query', description: 'Language code (e.g., en, ms)', required: false, schema: new OA\Schema(type: 'string', default: 'en')),
+            new OA\Parameter(name: 'page', in: 'query', description: 'Page number', required: false, schema: new OA\Schema(type: 'integer', default: 1)),
+            new OA\Parameter(name: 'size', in: 'query', description: 'Items per page', required: false, schema: new OA\Schema(type: 'integer', default: 10)),
         ],
         responses: [
-            new OA\Response(response: 200, description: 'List of blog posts', content: new OA\JsonContent(type: 'array', items: new OA\Items(ref: '#/components/schemas/BlogListItem'))),
+            new OA\Response(
+                response: 200,
+                description: 'List of blog posts with pagination',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'data', type: 'array', items: new OA\Items(ref: '#/components/schemas/BlogListItem')),
+                        new OA\Property(property: 'currentPage', type: 'integer', example: 1),
+                        new OA\Property(property: 'totalPage', type: 'integer', example: 5),
+                        new OA\Property(property: 'totalItems', type: 'integer', example: 50),
+                    ]
+                )
+            ),
         ],
     )]
     public function index(Request $request): JsonResponse
     {
-        $lang = $request->query('lang', 'en');
+        $languages = Language::all();
+        $size = $request->query('size', 10);
 
         $blogs = Blog::with([
             'translations.language',
             'author',
             'sections.translations.language',
             'comments.user'
-        ])->get();
+        ])->paginate($size);
 
-        $processedBlogs = $blogs->map(function ($blog) use ($lang) {
+        $processedBlogs = $blogs->getCollection()->map(function ($blog) use ($languages) {
             return [
                 'id' => $blog->id,
-                'title' => $blog->getTitle($lang),
-                'summary' => $blog->getSummary($lang),
-                'content' => $blog->getContent($lang),
                 'comment_count' => $blog->comment_count,
                 'reaction_count' => $blog->reaction_count,
                 'author' => $blog->author->email,
@@ -48,8 +58,15 @@ class BlogController extends Controller
                     'id' => $section->id,
                     'order' => $section->order,
                     'image' => $section->image ? Storage::disk('public')->url($section->image) : null,
-                    'title' => $section->getTitle($lang),
-                    'content' => $section->getContent($lang),
+                    'translations' => $languages->map(function($lang) use ($section) {
+                        $t = $section->translations->firstWhere('language_id', $lang->id);
+                        return [
+                            'language_id' => $lang->id,
+                            'language_code' => $lang->code,
+                            'title' => $t ? $t->title : null,
+                            'content' => $t ? $t->content : null,
+                        ];
+                    }),
                 ]),
                 'comments' => $blog->comments->map(fn ($comment) => [
                     'id' => $comment->id,
@@ -58,17 +75,25 @@ class BlogController extends Controller
                     'reply_to_id' => $comment->reply_to_id,
                     'created_at' => $comment->created_at,
                 ]),
-                'translations' => $blog->translations->map(fn($t) => [
-                    'language_id' => $t->language_id,
-                    'language_code' => $t->language->code,
-                    'title' => $t->title,
-                    'summary' => $t->summary,
-                    'content' => $t->content,
-                ]),
+                'translations' => $languages->map(function($lang) use ($blog) {
+                    $t = $blog->translations->firstWhere('language_id', $lang->id);
+                    return [
+                        'language_id' => $lang->id,
+                        'language_code' => $lang->code,
+                        'title' => $t ? $t->title : null,
+                        'summary' => $t ? $t->summary : null,
+                        'content' => $t ? $t->content : null,
+                    ];
+                }),
             ];
         });
 
-        return response()->json($processedBlogs);
+        return response()->json([
+            'data' => $processedBlogs,
+            'currentPage' => $blogs->currentPage(),
+            'totalPage' => $blogs->lastPage(),
+            'totalItems' => $blogs->total(),
+        ]);
     }
 
     #[OA\Post(
@@ -309,7 +334,6 @@ class BlogController extends Controller
         tags: ['Blogs'],
         parameters: [
             new OA\Parameter(name: 'id', in: 'path', description: 'Blog post ID', required: true, schema: new OA\Schema(type: 'integer')),
-            new OA\Parameter(name: 'lang', in: 'query', description: 'Language code (e.g., en, ms)', required: false, schema: new OA\Schema(type: 'string', default: 'en')),
         ],
         responses: [
             new OA\Response(response: 200, description: 'Blog post details', content: new OA\JsonContent(ref: '#/components/schemas/BlogListItem')),
@@ -318,7 +342,7 @@ class BlogController extends Controller
     )]
     public function show(Request $request, string $id): JsonResponse
     {
-        $lang = $request->query('lang', 'en');
+        $languages = Language::all();
 
         $blog = Blog::with([
             'translations.language',
@@ -328,18 +352,23 @@ class BlogController extends Controller
 
         return response()->json([
             'id' => $blog->id,
-            'title' => $blog->getTitle($lang),
-            'summary' => $blog->getSummary($lang),
-            'content' => $blog->getContent($lang),
             'author' => $blog->author->email,
             'published_at' => $blog->published_at,
             'reaction_count' => $blog->reaction_count,
+            'comment_count' => $blog->comment_count,
             'sections' => $blog->sections->map(fn ($section) => [
                 'id' => $section->id,
                 'order' => $section->order,
                 'image' => $section->image ? Storage::disk('public')->url($section->image) : null,
-                'title' => $section->getTitle($lang),
-                'content' => $section->getContent($lang),
+                'translations' => $languages->map(function($lang) use ($section) {
+                    $t = $section->translations->firstWhere('language_id', $lang->id);
+                    return [
+                        'language_id' => $lang->id,
+                        'language_code' => $lang->code,
+                        'title' => $t ? $t->title : null,
+                        'content' => $t ? $t->content : null,
+                    ];
+                }),
             ]),
             'comments' => $blog->comments->map(fn ($comment) => [
                 'id' => $comment->id,
@@ -348,13 +377,16 @@ class BlogController extends Controller
                 'reply_to_id' => $comment->reply_to_id,
                 'created_at' => $comment->created_at,
             ]),
-            'translations' => $blog->translations->map(fn($t) => [
-                'language_id' => $t->language_id,
-                'language_code' => $t->language->code,
-                'title' => $t->title,
-                'summary' => $t->summary,
-                'content' => $t->content,
-            ]),
+            'translations' => $languages->map(function($lang) use ($blog) {
+                $t = $blog->translations->firstWhere('language_id', $lang->id);
+                return [
+                    'language_id' => $lang->id,
+                    'language_code' => $lang->code,
+                    'title' => $t ? $t->title : null,
+                    'summary' => $t ? $t->summary : null,
+                    'content' => $t ? $t->content : null,
+                ];
+            }),
         ]);
     }
 
@@ -366,19 +398,26 @@ class BlogController extends Controller
             new OA\Parameter(name: 'id', in: 'path', description: 'Blog post ID', required: true, schema: new OA\Schema(type: 'integer')),
         ],
         responses: [
-            new OA\Response(response: 200, description: 'Blog post deleted'),
+            new OA\Response(response: 204, description: 'Blog post deleted'),
             new OA\Response(response: 404, description: 'Blog not found'),
         ],
     )]
-    public function delete(Request $request, string $id): JsonResponse
+    public function destroy(Request $request, string $id): JsonResponse
     {
-    // 1. Find the blog post by ID, or throw a 404 error if it doesn't exist
-    $blog = Blog::findOrFail($id);
+        // 1. Find the blog post by ID, or throw a 404 error if it doesn't exist
+        $blog = Blog::with('sections')->findOrFail($id);
 
-    // 2. Delete the record from the database
-    $blog->delete();
+        // 2. Delete associated section images from storage
+        foreach ($blog->sections as $section) {
+            if ($section->image) {
+                Storage::disk('public')->delete($section->image);
+            }
+        }
 
-    // 3. Return a success JSON response (Double quotes allow $id to be parsed)
-    return response()->json(null, 204); // 200 OK or 204 No Content
+        // 3. Delete the record from the database (cascades to translations, sections, comments, reactions)
+        $blog->delete();
+
+        // 4. Return a success JSON response (204 No Content is standard for successful DELETE)
+        return response()->json(null, 204);
     }
 }
