@@ -13,7 +13,7 @@ const themeStore = useThemeStore()
 // Initialize auth and theme on mount
 onMounted(async () => {
   await loadUser()
-  themeStore.applyThemeVariables(themeStore.currentTheme)
+  themeStore.applyThemeVariables()
 })
 </script>
 
