@@ -63,8 +63,9 @@ export const useThemeStore = defineStore("theme", () => {
     root.style.setProperty('--text-primary', tokens.colors['on-background']);
     root.style.setProperty('--text-muted', tokens.colors['on-background-muted']);
     root.style.setProperty('--border-color', tokens.colors.outline);
-    root.style.setProperty('--card-bg', tokens.colors.surface);
-    root.style.setProperty('--navbar-bg', tokens.colors.surface);
+    root.style.setProperty('--card-bg', tokens.colors.background); // Cards usually match background or have subtle shift
+    root.style.setProperty('--navbar-bg', tokens.colors.background); // Navbar matches background for "top-down" flow
+
 
     // Map typography tokens (e.g. font-sans -> --font-sans)
     Object.entries(tokens.typography).forEach(([key, value]) => {

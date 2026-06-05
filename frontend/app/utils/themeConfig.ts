@@ -27,19 +27,19 @@ export type ThemeName = 'light' | 'dark';
 export const DEFAULT_THEME_CONFIG: Record<ThemeName, ThemeTokens> = {
   light: {
     colors: {
-      primary: '#6200EE',
+      primary: '#3B82F6',
       'on-primary': '#FFFFFF',
-      secondary: '#03DAC6',
+      secondary: '#10B981',
       'on-secondary': '#000000',
       surface: '#FFFFFF',
-      'on-surface': '#121212',
-      'on-surface-muted': '#666666',
-      background: '#F8F9FA',
-      'on-background': '#121212',
-      'on-background-muted': '#444444',
-      error: '#B00020',
+      'on-surface': '#1F2937',
+      'on-surface-muted': '#6B7280',
+      background: '#F9FAFB',
+      'on-background': '#111827',
+      'on-background-muted': '#4B5563',
+      error: '#EF4444',
       'on-error': '#FFFFFF',
-      outline: '#E0E0E0',
+      outline: '#E5E7EB',
     },
     typography: {
       'font-sans': "'Inter', sans-serif",
@@ -49,19 +49,19 @@ export const DEFAULT_THEME_CONFIG: Record<ThemeName, ThemeTokens> = {
   },
   dark: {
     colors: {
-      primary: '#BB86FC',
-      'on-primary': '#000000',
-      secondary: '#03DAC6',
+      primary: '#60A5FA',
+      'on-primary': '#0F172A',
+      secondary: '#34D399',
       'on-secondary': '#000000',
-      surface: '#1E1E1E',
-      'on-surface': '#FFFFFF',
-      'on-surface-muted': '#AAAAAA',
-      background: '#121212',
-      'on-background': '#E1E1E1',
-      'on-background-muted': '#999999',
-      error: '#CF6679',
+      surface: '#1E293B',
+      'on-surface': '#F9FAFB',
+      'on-surface-muted': '#9CA3AF',
+      background: '#0F172A',
+      'on-background': '#F3F4F6',
+      'on-background-muted': '#9CA3AF',
+      error: '#F87171',
       'on-error': '#000000',
-      outline: '#383838',
+      outline: '#334155',
     },
     typography: {
       'font-sans': "'Inter', sans-serif",
@@ -70,4 +70,6 @@ export const DEFAULT_THEME_CONFIG: Record<ThemeName, ThemeTokens> = {
     },
   },
 };
+
+
 

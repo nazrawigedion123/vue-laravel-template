@@ -1,9 +1,11 @@
 <template>
   <div class="theme-demo-container">
     <header class="demo-header">
-      <h1 class="demo-title">Semantic Design System Demo</h1>
-      <p class="demo-subtitle">Using Material-style tokens with dynamic Pinia injection.</p>
+      <h1 class="demo-title">Consistent Design System Demo</h1>
+      <p class="demo-subtitle">In this system, all components follow the active theme (Light or Dark) consistently across the entire app.</p>
     </header>
+
+
 
     <div class="demo-grid">
       <!-- Color Cards -->
