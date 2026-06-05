@@ -1,3 +1,4 @@
+// frontend/app/store/authStore.ts
 import type { AuthResponse,AuthUser } from '~/types/api';
 import { generateCodeVerifier, generateCodeChallenge } from '~/utils/pkce';
 

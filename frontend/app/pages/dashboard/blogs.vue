@@ -21,7 +21,7 @@
         </thead>
         <tbody>
           <tr v-for="blog in blogs" :key="blog.id">
-            <td class="blog-title">{{ blog.title }}</td>
+            <td class="blog-title">{{ blog.translations[0]?.title }}</td>
             <td>{{ blog.author }}</td>
             <td>
               <span class="badge" :class="blog.published_at ? 'badge-success' : 'badge-draft'">
@@ -31,7 +31,11 @@
             <td>{{ blog.published_at || 'Never' }}</td>
             <td class="actions">
               <button class="icon-btn">Edit</button>
-              <button class="icon-btn delete">Delete</button>
+              <button     @click="handleDelete(blog.id, blog.translations[0]?.title||'')" 
+                class="icon-btn delete"
+              >
+                Delete
+              </button>
             </td>
           </tr>
         </tbody>
@@ -50,13 +54,24 @@ import {useBlogStore} from '~/store/blogStore'
 // const api = useApi()
 const blogStore = useBlogStore();
 const { blogs } = storeToRefs(blogStore); // Makes blogs reactive
-const { getBlogs } = blogStore;
+const { getBlogs,removeBlog } = blogStore;
 
 // Call the async function properly
 await getBlogs();
-// const { data: blogs } = await useAsyncData('dashboard-blogs', () => 
-//   api.request('/blogs')
-// )
+
+const handleDelete = async (id: number, title: string) => {
+  const confirmed = confirm(`Are you sure you want to delete "${title}"?`);
+  
+  if (!confirmed) return;
+
+  // The store function instantly removes it from the array
+  const success = await removeBlog(id);
+
+  if (!success) {
+    // If you have a toast notification system, you'd trigger it here
+    alert("Something went wrong. Could not delete the blog post.");
+  }};
+
 </script>
 
 <style scoped>

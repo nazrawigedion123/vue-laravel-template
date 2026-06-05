@@ -40,7 +40,7 @@ export const useApi = () => {
     // Leverage native $fetch configuration merging
     const headers: Record<string, string> = {
       Accept: 'application/json',
-      ...((options.body && { 'Content-Type': 'application/json' }) || {}),
+      ...((options.body && !(options.body instanceof FormData) && { 'Content-Type': 'application/json' }) || {}),
       ...((options.token && { Authorization: `Bearer ${options.token}` }) || {}),
     }
 
