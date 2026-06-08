@@ -15,7 +15,7 @@ return new class extends Migration
         $table->id();
         $table->foreignId('blog_id')->constrained('blogs')->onDelete('cascade');
         $table->unsignedInteger('order')->default(0);
-        $table->string('image')->nullable(); // Replaces ImageField
+        // $table->string('image')->nullable(); // Replaces ImageField
         $table->timestamps();
     });
 }

@@ -82,7 +82,7 @@ class MediaController extends Controller
         // 1. Validate the incoming request
         $request->validate([
             'file' => 'required_without:external_url|file|mimes:jpg,jpeg,png,gif,mp4,mov,avi|max:20480', // Max 20MB
-            'external_url' => 'required_without:file|url',
+            // 'external_url' => 'required_without:file|url',
             'filename' => 'nullable|string|max:255'
         ]);
 
@@ -104,6 +104,11 @@ class MediaController extends Controller
         } 
         // Scenario B: User provided an external link (like YouTube)
         else {
+            $request->validate([
+            // 'file' => 'required_without:external_url|file|mimes:jpg,jpeg,png,gif,mp4,mov,avi|max:20480', // Max 20MB
+            'external_url' => 'required_without:file|url',
+            // 'filename' => 'nullable|string|max:255'
+        ]);
             $url = $request->input('external_url');
             $mediaData['url'] = $url;
             $mediaData['filename'] = $request->input('filename') ?? 'External Link';

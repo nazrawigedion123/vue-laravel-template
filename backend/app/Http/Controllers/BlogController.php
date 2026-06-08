@@ -52,11 +52,29 @@ class BlogController extends Controller
                 'id' => $blog->id,
                 'comment_count' => $blog->comment_count,
                 'reaction_count' => $blog->reaction_count,
+                'medias' => $blog->media->map(fn ($media) => [
+                                'id' => $media->id,
+                                'filename' => $media->filename,
+                                'mime_type' => $media->mime_type,
+                                // Automatically determines if it's an external YouTube link or a physical file
+                                'url' => str_starts_with($media->mime_type, 'external/') 
+                                    ? $media->url 
+                                    : Storage::disk('public')->url($media->url),
+                            ]),
                 'author' => $blog->author->email,
                 'published_at' => $blog->published_at,
                 'sections' => $blog->sections->map(fn ($section) => [
                     'id' => $section->id,
                     'order' => $section->order,
+                    'medias' => $section->media->map(fn ($media) => [
+                                'id' => $media->id,
+                                'filename' => $media->filename,
+                                'mime_type' => $media->mime_type,
+                                // Automatically determines if it's an external YouTube link or a physical file
+                                'url' => str_starts_with($media->mime_type, 'external/') 
+                                    ? $media->url 
+                                    : Storage::disk('public')->url($media->url),
+                            ]),
                     'image' => $section->image ? Storage::disk('public')->url($section->image) : null,
                     'translations' => $languages->map(function($lang) use ($section) {
                         $t = $section->translations->firstWhere('language_id', $lang->id);
@@ -104,7 +122,7 @@ class BlogController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['translations'],
+                required: ['translations', 'media_ids'], // Marked media_ids as required here
                 properties: [
                     new OA\Property(
                         property: 'translations',
@@ -118,6 +136,17 @@ class BlogController extends Controller
                                 new OA\Property(property: 'content', type: 'string', example: 'Full content of the blog post...'),
                             ]
                         )
+                    ),
+                    // Added media_ids array documentation here
+                    new OA\Property(
+                        property: 'media_ids',
+                        description: 'An array of existing media IDs to associate with this blog post.',
+                        type: 'array',
+                        items: new OA\Items(
+                            type: 'integer',
+                            example: 1
+                        ),
+                        example: [1, 2, 3]
                     ),
                 ],
             ),
@@ -140,7 +169,7 @@ class BlogController extends Controller
             'translations.*.summary' => 'nullable|string',
             'translations.*.content' => 'required|string',
             'media_ids' => 'required|array',
-            'media_ids.*' => 'exists:media,id'
+            'media_ids.*' => 'exists:medias,id'
         ]);
 
         $translations = collect($request->translations);
@@ -181,12 +210,11 @@ class BlogController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\MediaType(
-                mediaType: 'multipart/form-data',
+                mediaType: 'application/json',
                 schema: new OA\Schema(
                     required: ['order', 'translations'],
                     properties: [
                         new OA\Property(property: 'order', type: 'integer', example: 1),
-                        new OA\Property(property: 'image', type: 'string', format: 'binary'),
                         new OA\Property(
                             property: 'translations',
                             type: 'array',
@@ -199,6 +227,16 @@ class BlogController extends Controller
                                 ]
                             )
                         ),
+                        new OA\Property(
+                        property: 'media_ids',
+                        description: 'An array of existing media IDs to associate with this blog post.',
+                        type: 'array',
+                        items: new OA\Items(
+                            type: 'integer',
+                            example: 1
+                        ),
+                        example: [1, 2, 3]
+                    ),
                     ]
                 )
             )
@@ -243,23 +281,26 @@ class BlogController extends Controller
 
         $request->validate([
             'order' => 'required|integer',
-            'image' => 'nullable|image|max:2048',
+            // 'image' => 'nullable|image|max:2048',
             'translations' => 'required|array|min:1',
             'translations.*.language_id' => 'required|exists:languages,id',
             'translations.*.title' => 'required|string|max:200',
             'translations.*.content' => 'required|string',
+             'media_ids' => 'required|array',
+            'media_ids.*' => 'exists:medias,id'
         ]);
 
         $imagePath = $request->file('image') ? $request->file('image')->store('blog_sections', 'public') : null;
 
         $section = $blog->sections()->create([
             'order' => $request->order,
-            'image' => $imagePath,
+            // 'image' => $imagePath,
         ]);
 
         foreach ($request->translations as $translationData) {
             $section->translations()->create($translationData);
         }
+        $section->media()->sync($request->input('media_ids'));
 
         return response()->json([
             'message' => 'Section added successfully!',
