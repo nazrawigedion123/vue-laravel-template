@@ -20,6 +20,7 @@ return new class extends Migration
             $table->unsignedInteger('reaction_count')->default(0);
             $table->timestamps(); // Handles created_at and updated_at
         });
+      
     }
 
     /**

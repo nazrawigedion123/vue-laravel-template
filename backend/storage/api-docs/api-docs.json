@@ -749,6 +749,252 @@
                 }
             }
         },
+        "/api/media/upload": {
+            "post": {
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Upload a new file or link external media",
+                "description": "Accepts either a physical file upload (multipart/form-data) OR an external media URL.",
+                "operationId": "d9dc8f1cd4f6ac7bbe7eaeb5c718486f",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [],
+                                "properties": {
+                                    "file": {
+                                        "description": "The physical media file (jpg, jpeg, png, gif, mp4, mov, avi). Required if external_url is missing.",
+                                        "type": "string",
+                                        "format": "binary"
+                                    },
+                                    "external_url": {
+                                        "description": "A URL to an external media source (e.g., a YouTube link). Required if file is missing.",
+                                        "type": "string",
+                                        "format": "uri",
+                                        "example": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                                    },
+                                    "filename": {
+                                        "description": "An optional custom display name for the media file.",
+                                        "type": "string",
+                                        "example": "Summer Vacation Hero Image",
+                                        "maxLength": 255
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Media created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Media created successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "filename": {
+                                                    "type": "string",
+                                                    "example": "Summer Vacation Hero Image"
+                                                },
+                                                "url": {
+                                                    "type": "string",
+                                                    "example": "media/random_filename.jpg"
+                                                },
+                                                "mime_type": {
+                                                    "type": "string",
+                                                    "example": "image/jpeg"
+                                                },
+                                                "file_size": {
+                                                    "type": "integer",
+                                                    "example": 1048576,
+                                                    "nullable": true
+                                                },
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "422": {
+                        "description": "Validation Error - Missing both file and external_url, or invalid file type"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
+        },
+        "/api/media/{id}": {
+            "put": {
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Update media metadata",
+                "description": "Updates the display filename of an existing media record. The physical file remains unchanged.",
+                "operationId": "02f96dfeb5bf268c27c65774846f18d2",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "The ID of the media record to update",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "example": 1
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "filename"
+                                ],
+                                "properties": {
+                                    "filename": {
+                                        "description": "The new custom display name for the media file.",
+                                        "type": "string",
+                                        "example": "Updated Vacation Photo Name",
+                                        "maxLength": 255
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Media updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Media updated successfully"
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "filename": {
+                                                    "type": "string",
+                                                    "example": "Updated Vacation Photo Name"
+                                                },
+                                                "url": {
+                                                    "type": "string",
+                                                    "example": "media/random_filename.jpg"
+                                                },
+                                                "mime_type": {
+                                                    "type": "string",
+                                                    "example": "image/jpeg"
+                                                },
+                                                "file_size": {
+                                                    "type": "integer",
+                                                    "example": 1048576,
+                                                    "nullable": true
+                                                },
+                                                "user_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "updated_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                },
+                                                "created_at": {
+                                                    "type": "string",
+                                                    "format": "date-time"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "404": {
+                        "description": "Media record not found"
+                    },
+                    "422": {
+                        "description": "Validation Error - Missing or invalid filename"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Media"
+                ],
+                "summary": "Delete a media by ID",
+                "operationId": "c72a2960d2dac76e80e4ff469fc99b09",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "media ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "media deleted"
+                    },
+                    "404": {
+                        "description": "Blog not found"
+                    }
+                }
+            }
+        },
         "/api/blogs/{id}/react": {
             "post": {
                 "tags": [
@@ -1180,6 +1426,10 @@
         {
             "name": "Languages",
             "description": "Languages"
+        },
+        {
+            "name": "Media",
+            "description": "Media"
         },
         {
             "name": "Reactions",

@@ -139,6 +139,8 @@ class BlogController extends Controller
             'translations.*.title' => 'required|string|max:200',
             'translations.*.summary' => 'nullable|string',
             'translations.*.content' => 'required|string',
+            'media_ids' => 'required|array',
+            'media_ids.*' => 'exists:media,id'
         ]);
 
         $translations = collect($request->translations);
@@ -155,6 +157,8 @@ class BlogController extends Controller
             'comment_count' => 0,
             'reaction_count' => 0,
         ]);
+
+        $blog->media()->sync($request->input('media_ids'));
 
         foreach ($request->translations as $translationData) {
             $blog->translations()->create($translationData);

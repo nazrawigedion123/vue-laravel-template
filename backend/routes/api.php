@@ -5,6 +5,7 @@ use App\Http\Controllers\BlogController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\ReactionController;
+use App\Http\Controllers\MediaController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/languages', [LanguageController::class, 'index']);
@@ -32,4 +33,12 @@ Route::middleware('auth:api')->group(function () {
        
     });
     Route::middleware('can:edit-blog')->put('/blogs/{id}', [BlogController::class, 'update']);
+    
+    Route::middleware('can:upload-media')->group(function(){
+        Route::post('/media/upload',[MediaController::class,'store']);
+
+        Route::put('/media/{id}',[MediaController::class,'update']);
+
+          Route::delete('/media/{id}',[MediaController::class,'destroy']);
+      });
 });

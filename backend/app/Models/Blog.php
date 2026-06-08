@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Blog extends Model
 {
@@ -81,5 +82,12 @@ class Blog extends Model
     public function getContent(?string $langCode = null): string {
         $t = $this->getTranslation($langCode);
         return $t ? ($t->content ?? '') : '';
+    }
+
+    public function media(): BelongsToMany
+    {
+        return $this->belongsToMany(Media::class, 'blogs_media')
+                    ->withPivot('sort_order')
+                    ->withTimestamps();
     }
 }
