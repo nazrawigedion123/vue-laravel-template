@@ -1,5 +1,7 @@
 // types/blog.ts
 
+import type { MediaItem,MediaItems } from "./media";
+
 export interface Translation {
     language_id: number;
     language_code: string;
@@ -30,6 +32,7 @@ export interface Comment {
     created_at: string; // or Date if you parse it
 }
 
+
 export interface Blog {
     id: number;
     comment_count: number;
@@ -38,6 +41,7 @@ export interface Blog {
     published_at: string | null;
     sections: Section[];
     comments: Comment[];
+    media_ids: MediaItems;
     translations: Translation[];
 }
 
@@ -46,6 +50,21 @@ export interface BlogsResponse {
     currentPage:number;
     totalItems:number;
     totalPages:number;
+}
+
+
+
+
+
+
+export interface BlogCreateRequest {
+  translations: Translation[];
+  media_ids: number[];
+}
+
+export interface BlogCreateResponse {
+    message: string;
+    blog_id:number;
 }
 
 
