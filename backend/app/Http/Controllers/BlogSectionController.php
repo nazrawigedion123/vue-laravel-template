@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Blog;
-
+use Illuminate\Support\Facades\Gate;
 use App\Models\BlogSection;
 use App\Models\Language;
 use Illuminate\Http\JsonResponse;
@@ -68,6 +68,10 @@ class BlogSectionController extends Controller{
     public function addSection(Request $request, string $id): JsonResponse
     {
         $blog = Blog::findOrFail($id);
+
+       
+        Gate::authorize('own-blog', $blog);
+
 
         if ($request->has('translations')) {
             $translations = $request->translations;
@@ -180,6 +184,7 @@ class BlogSectionController extends Controller{
     public function updateSection(Request $request, string $blogId, string $sectionId): JsonResponse
     {
     $blog = Blog::findOrFail($blogId);
+     Gate::authorize('own-blog', $blog);
     $section = $blog->sections()->where('id', $sectionId)->firstOrFail();
 
     // Handle translations if present (same logic as addSection)
@@ -277,6 +282,50 @@ class BlogSectionController extends Controller{
         'message' => 'Section updated successfully!',
         'section' => $section,
     ], 200);
+    }
+
+
+
+    #[OA\Delete(
+    path: '/api/blogs/{blogID}/sections/{sectionID}',
+    summary: 'Delete a section from a blog post',
+    tags: ['Blogs'],
+    security: [['bearerAuth' => []]],
+    parameters: [
+        new OA\Parameter(name: 'blogID', in: 'path', description: 'Blog post ID', required: true, schema: new OA\Schema(type: 'integer')),
+        new OA\Parameter(name: 'sectionID', in: 'path', description: 'Blog post section ID', required: true, schema: new OA\Schema(type: 'integer')),
+    ],
+    responses: [
+        new OA\Response(response: 200, description: 'Section deleted successfully', content: new OA\JsonContent(ref: '#/components/schemas/MessageResponse')),
+        new OA\Response(response: 401, description: 'Unauthenticated'),
+        new OA\Response(response: 403, description: 'Forbidden'),
+        new OA\Response(response: 404, description: 'Blog or Section not found'),
+    ]
+    )]
+    public function deleteSection(string $blogId, string $sectionId): JsonResponse
+    {
+        $blog = Blog::findOrFail($blogId);       
+        Gate::authorize('own-blog', $blog);
+        $section = $blog->sections()->where('id', $sectionId)->firstOrFail();
+        
+        // Delete associated image if exists
+        if ($section->image) {
+            Storage::disk('public')->delete($section->image);
+        }
+        
+        // Delete translations (will be cascaded if foreign key constraints are set, 
+        // but explicit deletion is safer)
+        $section->translations()->delete();
+        
+        // Detach media relationships
+        $section->media()->detach();
+        
+        // Delete the section
+        $section->delete();
+        
+        return response()->json([
+            'message' => 'Section deleted successfully!'
+        ], 200);
     }
 
 }

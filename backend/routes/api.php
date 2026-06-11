@@ -27,14 +27,20 @@ Route::middleware('auth:api')->group(function () {
         Route::post('/blogs/{id}/comment', [CommentController::class, 'store']);
         Route::post('/blogs', [BlogController::class, 'store']);
         Route::post('/blogs/{id}/sections', [BlogSectionController::class, 'addSection']);
-        Route::post('/blogs/{blogID}/sections{sectionID}', [BlogSectionController::class, 'updateSection']);
+     
        
     });
     Route::middleware('can:delete-blog')->group(function(){
        Route::delete('/blogs/{id}', [BlogController::class, 'destroy']);
+         Route::post('/blogs/{blogID}/sections{sectionID}', [BlogSectionController::class, 'updateSection']);
        
     });
-    Route::middleware('can:edit-blog')->put('/blogs/{id}', [BlogController::class, 'update']);
+    Route::middleware('can:edit-blog')->group(function () {
+            Route::put('/blogs/{id}', [BlogController::class, 'update']);
+           Route::post('/blogs/{blogID}/sections{sectionID}', [BlogSectionController::class, 'updateSection']);
+    
+        
+    });
     
     Route::middleware('can:upload-media')->group(function(){
         Route::post('/media/upload',[MediaController::class,'store']);

@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Gate;
 use App\Models\Blog;
 use App\Models\Language;
 use Illuminate\Http\JsonResponse;
@@ -253,6 +253,7 @@ class BlogController extends Controller
     public function update(Request $request, string $id): JsonResponse
     {
         $blog = Blog::findOrFail($id);
+        Gate::authorize('own-blog', $blog);
 
         $request->validate([
             'translations' => 'required|array|min:1',
@@ -357,9 +358,12 @@ class BlogController extends Controller
     )]
     public function destroy(Request $request, string $id): JsonResponse
     {
+    
+     
+
         // 1. Find the blog post by ID, or throw a 404 error if it doesn't exist
         $blog = Blog::with('sections')->findOrFail($id);
-
+        Gate::authorize('own-blog', $blog);
         // 2. Delete associated section images from storage
         foreach ($blog->sections as $section) {
             if ($section->image) {
