@@ -5,7 +5,7 @@
         <h1>Blog Management</h1>
         <p>Create, edit, and manage your published articles.</p>
       </div>
-      <button class="btn btn-primary">+ New Post</button>
+      <NuxtLink to="/dashboard/blogs/create" class="btn btn-primary">+ New Post</NuxtLink>
     </div>
 
     <div class="table-container">
@@ -30,7 +30,7 @@
             </td>
             <td>{{ blog.published_at || 'Never' }}</td>
             <td class="actions">
-              <button class="icon-btn">Edit</button>
+              <NuxtLink :to="`/dashboard/blogs/edit/${blog.id}`" class="icon-btn">Edit</NuxtLink>
               <button     @click="handleDelete(blog.id, blog.translations[0]?.title||'')" 
                 class="icon-btn delete"
               >

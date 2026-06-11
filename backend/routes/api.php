@@ -6,6 +6,7 @@ use App\Http\Controllers\CommentController;
 use App\Http\Controllers\LanguageController;
 use App\Http\Controllers\ReactionController;
 use App\Http\Controllers\MediaController;
+use App\Http\Controllers\BlogSectionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/languages', [LanguageController::class, 'index']);
@@ -25,7 +26,8 @@ Route::middleware('auth:api')->group(function () {
     Route::middleware('can:create-blog')->group(function () {
         Route::post('/blogs/{id}/comment', [CommentController::class, 'store']);
         Route::post('/blogs', [BlogController::class, 'store']);
-        Route::post('/blogs/{id}/sections', [BlogController::class, 'addSection']);
+        Route::post('/blogs/{id}/sections', [BlogSectionController::class, 'addSection']);
+        Route::post('/blogs/{blogID}/sections{sectionID}', [BlogSectionController::class, 'updateSection']);
        
     });
     Route::middleware('can:delete-blog')->group(function(){

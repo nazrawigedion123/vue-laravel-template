@@ -84,6 +84,7 @@ export const useBlogStore=defineStore("blog",()=>{
             isCreating.value = false;
         }
     };
+    // const editBlog=async
     const removeBlog = async (id: number) => {
         // 1. Save a backup of the current state in case the API fails
         const previousBlogs = [...blogs.value];

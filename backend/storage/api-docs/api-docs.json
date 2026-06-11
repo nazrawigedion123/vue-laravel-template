@@ -295,8 +295,7 @@
                         "application/json": {
                             "schema": {
                                 "required": [
-                                    "translations",
-                                    "media_ids"
+                                    "translations"
                                 ],
                                 "properties": {
                                     "translations": {
@@ -304,8 +303,7 @@
                                         "items": {
                                             "required": [
                                                 "language_id",
-                                                "title",
-                                                "content"
+                                                "title"
                                             ],
                                             "properties": {
                                                 "language_id": {
@@ -376,13 +374,177 @@
                 ]
             }
         },
+        "/api/blogs/{id}": {
+            "get": {
+                "tags": [
+                    "Blogs"
+                ],
+                "summary": "Get a single blog post by ID",
+                "operationId": "edf2058da1858ee867ebc4789b3195f4",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Blog post ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Blog post details",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/BlogListItem"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Blog not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Blogs"
+                ],
+                "summary": "Update a blog post",
+                "operationId": "6a99affa8f7d94cd429d58eb73cf0e88",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Blog post ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "translations": {
+                                        "type": "array",
+                                        "items": {
+                                            "required": [
+                                                "language_id",
+                                                "title",
+                                                "summary",
+                                                "content"
+                                            ],
+                                            "properties": {
+                                                "language_id": {
+                                                    "type": "integer",
+                                                    "example": 1
+                                                },
+                                                "title": {
+                                                    "type": "string",
+                                                    "example": "Updated Title",
+                                                    "maxLength": 200
+                                                },
+                                                "summary": {
+                                                    "type": "string",
+                                                    "example": "Updated summary..."
+                                                },
+                                                "content": {
+                                                    "type": "string",
+                                                    "example": "Updated content..."
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "media_ids": {
+                                        "description": "An array of existing media IDs to associate with this blog post.",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer",
+                                            "example": 1
+                                        },
+                                        "example": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Blog updated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MessageResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden - insufficient permissions"
+                    },
+                    "404": {
+                        "description": "Blog not found"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Blogs"
+                ],
+                "summary": "Delete a single blog post by ID",
+                "operationId": "9fb0bb3fc65e987a03d2b5ecdda4489d",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "description": "Blog post ID",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Blog post deleted"
+                    },
+                    "404": {
+                        "description": "Blog not found"
+                    }
+                }
+            }
+        },
         "/api/blogs/{id}/sections": {
             "post": {
                 "tags": [
                     "Blogs"
                 ],
                 "summary": "Add a section to a blog post",
-                "operationId": "01b970d65287ff9aba0bae6f4a133539",
+                "operationId": "780f3e7f92ad595f8df81775916825ed",
                 "parameters": [
                     {
                         "name": "id",
@@ -482,156 +644,6 @@
                         "bearerAuth": []
                     }
                 ]
-            }
-        },
-        "/api/blogs/{id}": {
-            "get": {
-                "tags": [
-                    "Blogs"
-                ],
-                "summary": "Get a single blog post by ID",
-                "operationId": "edf2058da1858ee867ebc4789b3195f4",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Blog post ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "Blog post details",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/BlogListItem"
-                                }
-                            }
-                        }
-                    },
-                    "404": {
-                        "description": "Blog not found"
-                    }
-                }
-            },
-            "put": {
-                "tags": [
-                    "Blogs"
-                ],
-                "summary": "Update a blog post",
-                "operationId": "6a99affa8f7d94cd429d58eb73cf0e88",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Blog post ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "requestBody": {
-                    "required": true,
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "properties": {
-                                    "translations": {
-                                        "type": "array",
-                                        "items": {
-                                            "required": [
-                                                "language_id",
-                                                "title",
-                                                "content"
-                                            ],
-                                            "properties": {
-                                                "language_id": {
-                                                    "type": "integer",
-                                                    "example": 1
-                                                },
-                                                "title": {
-                                                    "type": "string",
-                                                    "example": "Updated Title",
-                                                    "maxLength": 200
-                                                },
-                                                "summary": {
-                                                    "type": "string",
-                                                    "example": "Updated summary..."
-                                                },
-                                                "content": {
-                                                    "type": "string",
-                                                    "example": "Updated content..."
-                                                }
-                                            },
-                                            "type": "object"
-                                        }
-                                    }
-                                },
-                                "type": "object"
-                            }
-                        }
-                    }
-                },
-                "responses": {
-                    "200": {
-                        "description": "Blog updated",
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/MessageResponse"
-                                }
-                            }
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthenticated"
-                    },
-                    "403": {
-                        "description": "Forbidden - insufficient permissions"
-                    },
-                    "404": {
-                        "description": "Blog not found"
-                    },
-                    "422": {
-                        "description": "Validation Error"
-                    }
-                },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ]
-            },
-            "delete": {
-                "tags": [
-                    "Blogs"
-                ],
-                "summary": "Delete a single blog post by ID",
-                "operationId": "9fb0bb3fc65e987a03d2b5ecdda4489d",
-                "parameters": [
-                    {
-                        "name": "id",
-                        "in": "path",
-                        "description": "Blog post ID",
-                        "required": true,
-                        "schema": {
-                            "type": "integer"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "Blog post deleted"
-                    },
-                    "404": {
-                        "description": "Blog not found"
-                    }
-                }
             }
         },
         "/api/blogs/{id}/comment": {

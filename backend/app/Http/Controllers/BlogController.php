@@ -122,13 +122,13 @@ class BlogController extends Controller
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['translations', 'media_ids'], // Marked media_ids as required here
+                required: ['translations'], // Marked media_ids as required here
                 properties: [
                     new OA\Property(
                         property: 'translations',
                         type: 'array',
                         items: new OA\Items(
-                            required: ['language_id', 'title', 'content'],
+                            required: ['language_id', 'title'],
                             properties: [
                                 new OA\Property(property: 'language_id', type: 'integer', example: 1),
                                 new OA\Property(property: 'title', type: 'string', maxLength: 200, example: 'My New Blog'),
@@ -166,9 +166,9 @@ class BlogController extends Controller
             'translations' => 'required|array|min:1',
             'translations.*.language_id' => 'required|exists:languages,id',
             'translations.*.title' => 'required|string|max:200',
-            'translations.*.summary' => 'nullable|string',
-            'translations.*.content' => 'required|string',
-            'media_ids' => 'required|array',
+            'translations.*.summary' => 'required|string',
+            'translations.*.content' => 'nullable|string',
+            'media_ids'   => 'nullable|array',
             'media_ids.*' => 'exists:medias,id'
         ]);
 
@@ -199,114 +199,7 @@ class BlogController extends Controller
         ], 201);
     }
 
-    #[OA\Post(
-        path: '/api/blogs/{id}/sections',
-        summary: 'Add a section to a blog post',
-        tags: ['Blogs'],
-        security: [['bearerAuth' => []]],
-        parameters: [
-            new OA\Parameter(name: 'id', in: 'path', description: 'Blog post ID', required: true, schema: new OA\Schema(type: 'integer')),
-        ],
-        requestBody: new OA\RequestBody(
-            required: true,
-            content: new OA\MediaType(
-                mediaType: 'application/json',
-                schema: new OA\Schema(
-                    required: ['order', 'translations'],
-                    properties: [
-                        new OA\Property(property: 'order', type: 'integer', example: 1),
-                        new OA\Property(
-                            property: 'translations',
-                            type: 'array',
-                            items: new OA\Items(
-                                required: ['language_id', 'title', 'content'],
-                                properties: [
-                                    new OA\Property(property: 'language_id', type: 'integer', example: 1),
-                                    new OA\Property(property: 'title', type: 'string', maxLength: 200, example: 'Section Title'),
-                                    new OA\Property(property: 'content', type: 'string', example: 'Section content...'),
-                                ]
-                            )
-                        ),
-                        new OA\Property(
-                        property: 'media_ids',
-                        description: 'An array of existing media IDs to associate with this blog post.',
-                        type: 'array',
-                        items: new OA\Items(
-                            type: 'integer',
-                            example: 1
-                        ),
-                        example: [1, 2, 3]
-                    ),
-                    ]
-                )
-            )
-        ),
-        responses: [
-            new OA\Response(response: 201, description: 'Section added', content: new OA\JsonContent(ref: '#/components/schemas/MessageResponse')),
-            new OA\Response(response: 401, description: 'Unauthenticated'),
-            new OA\Response(response: 403, description: 'Forbidden'),
-            new OA\Response(response: 404, description: 'Blog not found'),
-            new OA\Response(response: 422, description: 'Validation Error'),
-        ],
-    )]
-    public function addSection(Request $request, string $id): JsonResponse
-    {
-        $blog = Blog::findOrFail($id);
-
-        if ($request->has('translations')) {
-            $translations = $request->translations;
-
-            if (is_string($translations)) {
-                $decoded = json_decode($translations, true);
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    return response()->json([
-                        'message' => 'The translations field contains invalid JSON.',
-                        'errors' => ['translations' => ['JSON parse error: ' . json_last_error_msg()]]
-                    ], 422);
-                }
-                $translations = $decoded;
-            }
-
-            if (is_array($translations)) {
-                $translations = array_map(function ($item) {
-                    if (is_string($item)) {
-                        $decoded = json_decode($item, true);
-                        return json_last_error() === JSON_ERROR_NONE ? $decoded : $item;
-                    }
-                    return $item;
-                }, $translations);
-                $request->merge(['translations' => $translations]);
-            }
-        }
-
-        $request->validate([
-            'order' => 'required|integer',
-            // 'image' => 'nullable|image|max:2048',
-            'translations' => 'required|array|min:1',
-            'translations.*.language_id' => 'required|exists:languages,id',
-            'translations.*.title' => 'required|string|max:200',
-            'translations.*.content' => 'required|string',
-             'media_ids' => 'required|array',
-            'media_ids.*' => 'exists:medias,id'
-        ]);
-
-        $imagePath = $request->file('image') ? $request->file('image')->store('blog_sections', 'public') : null;
-
-        $section = $blog->sections()->create([
-            'order' => $request->order,
-            // 'image' => $imagePath,
-        ]);
-
-        foreach ($request->translations as $translationData) {
-            $section->translations()->create($translationData);
-        }
-        $section->media()->sync($request->input('media_ids'));
-
-        return response()->json([
-            'message' => 'Section added successfully!',
-            'section_id' => $section->id,
-        ], 201);
-    }
+    
 
 
 
@@ -327,7 +220,7 @@ class BlogController extends Controller
                         property: 'translations',
                         type: 'array',
                         items: new OA\Items(
-                            required: ['language_id', 'title', 'content'],
+                            required: ['language_id', 'title','summary', 'content'],
                             properties: [
                                 new OA\Property(property: 'language_id', type: 'integer', example: 1),
                                 new OA\Property(property: 'title', type: 'string', maxLength: 200, example: 'Updated Title'),
@@ -335,6 +228,16 @@ class BlogController extends Controller
                                 new OA\Property(property: 'content', type: 'string', example: 'Updated content...'),
                             ]
                         )
+                    ),
+                    new OA\Property(
+                        property: 'media_ids',
+                        description: 'An array of existing media IDs to associate with this blog post.',
+                        type: 'array',
+                        items: new OA\Items(
+                            type: 'integer',
+                            example: 1
+                        ),
+                        example: [1, 2, 3]
                     ),
                 ],
             ),
@@ -355,8 +258,10 @@ class BlogController extends Controller
             'translations' => 'required|array|min:1',
             'translations.*.language_id' => 'required|exists:languages,id',
             'translations.*.title' => 'required|string|max:200',
-            'translations.*.summary' => 'nullable|string',
+            'translations.*.summary' => 'required|string',
             'translations.*.content' => 'required|string',
+            'media_ids'   => 'required|array',
+            'media_ids.*' => 'exists:medias,id'
         ]);
 
         foreach ($request->translations as $translationData) {
@@ -370,7 +275,10 @@ class BlogController extends Controller
             );
         }
 
-        return response()->json(['message' => 'Blog updated successfully!']);
+         return response()->json([
+            'message' => 'Blog updated successfully!',
+            'id' => $blog->id,
+        ], 201);
     }
 
     #[OA\Get(

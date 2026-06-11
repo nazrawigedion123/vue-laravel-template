@@ -61,7 +61,11 @@ export interface BlogCreateRequest {
   translations: Translation[];
   media_ids: number[];
 }
-
+export interface BlogEditRequest {
+    id:number,
+    translations: Translation[];
+    media_ids: number[];
+}
 export interface BlogCreateResponse {
     message: string;
     blog_id:number;
