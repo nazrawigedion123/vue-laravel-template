@@ -275,10 +275,35 @@ class BlogController extends Controller
                 ]
             );
         }
+        $languages = Language::all();
 
          return response()->json([
             'message' => 'Blog updated successfully!',
-            'id' => $blog->id,
+            'blog' => [ 'id' => $blog->id,
+                        'author' => $blog->author->email,
+                        'published_at' => $blog->published_at,
+                        'reaction_count' => $blog->reaction_count,
+                        'comment_count' => $blog->comment_count,
+                        'medias' => $blog->media->map(fn ($media) => [
+                                'id' => $media->id,
+                                'filename' => $media->filename,
+                                'mime_type' => $media->mime_type,
+                                // Automatically determines if it's an external YouTube link or a physical file
+                                'url' => str_starts_with($media->mime_type, 'external/') 
+                                    ? $media->url 
+                                    : Storage::disk('public')->url($media->url),
+                            ]),
+                        'translations' => $languages->map(function($lang) use ($blog) {
+                            $t = $blog->translations->firstWhere('language_id', $lang->id);
+                            return [
+                                'language_id' => $lang->id,
+                                'language_code' => $lang->code,
+                                'title' => $t ? $t->title : null,
+                                'summary' => $t ? $t->summary : null,
+                                'content' => $t ? $t->content : null,
+                            ];
+                        }),
+                    ],
         ], 201);
     }
 
@@ -310,10 +335,27 @@ class BlogController extends Controller
             'published_at' => $blog->published_at,
             'reaction_count' => $blog->reaction_count,
             'comment_count' => $blog->comment_count,
+              'medias' => $blog->media->map(fn ($media) => [
+                                'id' => $media->id,
+                                'filename' => $media->filename,
+                                'mime_type' => $media->mime_type,
+                                // Automatically determines if it's an external YouTube link or a physical file
+                                'url' => str_starts_with($media->mime_type, 'external/') 
+                                    ? $media->url 
+                                    : Storage::disk('public')->url($media->url),
+                            ]),
             'sections' => $blog->sections->map(fn ($section) => [
                 'id' => $section->id,
                 'order' => $section->order,
-                'image' => $section->image ? Storage::disk('public')->url($section->image) : null,
+                'medias' => $section->media->map(fn ($media) => [
+                                'id' => $media->id,
+                                'filename' => $media->filename,
+                                'mime_type' => $media->mime_type,
+                                // Automatically determines if it's an external YouTube link or a physical file
+                                'url' => str_starts_with($media->mime_type, 'external/') 
+                                    ? $media->url 
+                                    : Storage::disk('public')->url($media->url),
+                            ]),
                 'translations' => $languages->map(function($lang) use ($section) {
                     $t = $section->translations->firstWhere('language_id', $lang->id);
                     return [
