@@ -69,7 +69,7 @@ class BlogSectionController extends Controller{
     {
         $blog = Blog::findOrFail($id);
 
-       
+        $languages = Language::all();
         Gate::authorize('own-blog', $blog);
 
 
@@ -124,8 +124,29 @@ class BlogSectionController extends Controller{
 
         return response()->json([
             'message' => 'Section added successfully!',
-            'section_id' => $section->id,
-        ], 201);
+            'section' =>[
+                        'id' => $section->id,
+                        'order' => $section->order,
+                        'medias' => $section->media->map(fn ($media) => [
+                                        'id' => $media->id,
+                                        'filename' => $media->filename,
+                                        'mime_type' => $media->mime_type,
+                                        // Automatically determines if it's an external YouTube link or a physical file
+                                        'url' => str_starts_with($media->mime_type, 'external/') 
+                                            ? $media->url 
+                                            : Storage::disk('public')->url($media->url),
+                                    ]),
+                        'translations' => $languages->map(function($lang) use ($section) 
+                                                {
+                                                $t = $section->translations->firstWhere('language_id', $lang->id);
+                                                return [
+                                                        'language_id' => $lang->id,
+                                                        'language_code' => $lang->code,
+                                                        'title' => $t ? $t->title : null,
+                                                        'content' => $t ? $t->content : null,
+                                                        ];
+                                                } )                   
+                         ], 201]);
     }
 
 
@@ -184,7 +205,8 @@ class BlogSectionController extends Controller{
     public function updateSection(Request $request, string $blogId, string $sectionId): JsonResponse
     {
     $blog = Blog::findOrFail($blogId);
-     Gate::authorize('own-blog', $blog);
+    Gate::authorize('own-blog', $blog);
+    $languages = Language::all();
     $section = $blog->sections()->where('id', $sectionId)->firstOrFail();
 
     // Handle translations if present (same logic as addSection)
@@ -280,7 +302,29 @@ class BlogSectionController extends Controller{
 
     return response()->json([
         'message' => 'Section updated successfully!',
-        'section' => $section,
+        'section' => [
+                        'id' => $section->id,
+                        'order' => $section->order,
+                        'medias' => $section->media->map(fn ($media) => [
+                                        'id' => $media->id,
+                                        'filename' => $media->filename,
+                                        'mime_type' => $media->mime_type,
+                                        // Automatically determines if it's an external YouTube link or a physical file
+                                        'url' => str_starts_with($media->mime_type, 'external/') 
+                                            ? $media->url 
+                                            : Storage::disk('public')->url($media->url),
+                                    ]),
+                        'translations' => $languages->map(function($lang) use ($section) 
+                                                {
+                                                $t = $section->translations->firstWhere('language_id', $lang->id);
+                                                return [
+                                                        'language_id' => $lang->id,
+                                                        'language_code' => $lang->code,
+                                                        'title' => $t ? $t->title : null,
+                                                        'content' => $t ? $t->content : null,
+                                                        ];
+                                                } )                   
+                         ],
     ], 200);
     }
 
@@ -323,9 +367,7 @@ class BlogSectionController extends Controller{
         // Delete the section
         $section->delete();
         
-        return response()->json([
-            'message' => 'Section deleted successfully!'
-        ], 200);
+        return response()->json(null, 204);
     }
 
 }

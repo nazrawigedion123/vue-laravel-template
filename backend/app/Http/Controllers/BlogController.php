@@ -75,7 +75,6 @@ class BlogController extends Controller
                                     ? $media->url 
                                     : Storage::disk('public')->url($media->url),
                             ]),
-                    'image' => $section->image ? Storage::disk('public')->url($section->image) : null,
                     'translations' => $languages->map(function($lang) use ($section) {
                         $t = $section->translations->firstWhere('language_id', $lang->id);
                         return [
