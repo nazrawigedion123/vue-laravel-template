@@ -32,12 +32,12 @@ Route::middleware('auth:api')->group(function () {
     });
     Route::middleware('can:delete-blog')->group(function(){
        Route::delete('/blogs/{id}', [BlogController::class, 'destroy']);
-         Route::post('/blogs/{blogID}/sections{sectionID}', [BlogSectionController::class, 'updateSection']);
+        Route::delete('/blogs/{blogID}/sections/{sectionID}', [BlogSectionController::class, 'deleteSection']);
        
     });
     Route::middleware('can:edit-blog')->group(function () {
-            Route::put('/blogs/{id}', [BlogController::class, 'update']);
-           Route::post('/blogs/{blogID}/sections{sectionID}', [BlogSectionController::class, 'updateSection']);
+        Route::put('/blogs/{id}', [BlogController::class, 'update']);
+        Route::put('/blogs/{blogID}/sections/{sectionID}', [BlogSectionController::class, 'updateSection']);
     
         
     });

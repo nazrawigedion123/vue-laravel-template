@@ -15,19 +15,7 @@
     <div class="bg-surface rounded-3xl shadow-sm border border-outline p-6 md:p-8">
       
       <!-- Error Banner -->
-      <transition 
-        enter-active-class="transform transition duration-300 ease-out"
-        enter-from-class="scale-95 opacity-0"
-        enter-to-class="scale-100 opacity-100"
-        leave-active-class="transform transition duration-200 ease-in"
-        leave-from-class="scale-100 opacity-100"
-        leave-to-class="scale-95 opacity-0"
-      >
-        <div v-if="blogStore.blogError" class="mb-6 p-4 bg-error-container text-error-on-container rounded-xl flex items-start gap-3 border border-error/20">
-          <svg class="mt-0.5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-          <div class="text-sm font-medium">{{ blogStore.blogError }}</div>
-        </div>
-      </transition>
+      <DashboardMessage v-if="blogStore.blogError" class="mb-6" type="error" :message="blogStore.blogError" />
 
       <form @submit.prevent="handleSubmit" class="space-y-8">
         <!-- Title Input (MD3 Outlined) -->
@@ -107,6 +95,7 @@
 
 <script setup lang="ts">
 import { useBlogStore } from '~/store/blogStore'
+import DashboardMessage from '~/components/dashboard/DashboardMessage.vue'
 
 definePageMeta({
   layout: 'dashboard',

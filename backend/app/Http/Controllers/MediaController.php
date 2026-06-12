@@ -94,8 +94,8 @@ class MediaController extends Controller
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             
-            // Store file in the 'media' directory on the public disk (or S3)
-            $path = $file->store('media', 'public');
+            // Store directly in the shared public media disk root. The disk URL already includes /media.
+            $path = $file->store('', 'public');
 
             $mediaData['filename'] = $request->input('filename') ?? $file->getClientOriginalName();
             $mediaData['url'] = $path;

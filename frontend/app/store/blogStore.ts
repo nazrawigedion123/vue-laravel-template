@@ -22,8 +22,24 @@ export const useBlogStore=defineStore("blog",()=>{
     const auth=useAuthStore();
     const{token}=auth;
 
-    // blogError
+    // blog messages
     const blogError = ref<string | null>(null);
+    const blogSuccess = ref<string | null>(null);
+
+    const clearBlogMessages = () => {
+        blogError.value = null;
+        blogSuccess.value = null;
+    };
+
+    const setBlogError = (message: string) => {
+        blogError.value = message;
+        blogSuccess.value = null;
+    };
+
+    const setBlogSuccess = (message: string) => {
+        blogSuccess.value = message;
+        blogError.value = null;
+    };
 
     // loaders
     const isCreating = ref(false);
@@ -46,7 +62,7 @@ export const useBlogStore=defineStore("blog",()=>{
      */
     const getBlogs=async()=>{
         isLoading.value=true;
-        blogError.value=null;
+        clearBlogMessages();
 
         try{
             
@@ -55,7 +71,7 @@ export const useBlogStore=defineStore("blog",()=>{
             return blogs.value
 
         }catch(error:any){
-            blogError.value = error.data?.message || "Failed to fetch blogs.";
+            setBlogError(error.data?.message || "Failed to fetch blogs.");
             return null
 
         }finally{
@@ -80,7 +96,7 @@ export const useBlogStore=defineStore("blog",()=>{
      * the blog is found or `null` if the blog is not found or an error occurs during the process.
      */
     const getBlogById = async (id: number, forceRefresh: boolean = false): Promise<Blog | null> => {
-    blogError.value = null;
+    clearBlogMessages();
     
     // Check if blog exists in local state and not forcing refresh
     if (!forceRefresh) {
@@ -109,7 +125,7 @@ export const useBlogStore=defineStore("blog",()=>{
         }
         return null;
     } catch (error: any) {
-        blogError.value = error.data?.message || `Failed to fetch blog with id ${id}.`;
+        setBlogError(error.data?.message || `Failed to fetch blog with id ${id}.`);
         return null;
     }
     };
@@ -130,7 +146,7 @@ export const useBlogStore=defineStore("blog",()=>{
     */
     const createBlog = async (blogCreateRequest: BlogCreateRequest): Promise<number | null> => {
         isCreating.value = true;
-        blogError.value = null;
+        clearBlogMessages();
         
         try {
             const res = await api.request<BlogCreateResponse>(`/blogs`, {
@@ -163,12 +179,13 @@ export const useBlogStore=defineStore("blog",()=>{
                 
                 // Add the new blog to the top of the array
                 blogs.value.unshift(newBlog);
+                setBlogSuccess(res.message || "Blog post created successfully.");
                 
                 return res.blog_id;
             }
             return null;
         } catch (error: any) {
-            blogError.value = error.data?.message || "Failed to create blog post.";
+            setBlogError(error.data?.message || "Failed to create blog post.");
             return null;
         } finally {
             isCreating.value = false;
@@ -193,13 +210,13 @@ export const useBlogStore=defineStore("blog",()=>{
      */
     const editBlog = async (blogEditRequest: BlogEditRequest, id: number): Promise<Blog | null> => {
     isEditing.value = true;
-    blogError.value = null;
+    clearBlogMessages();
     
     const index = blogs.value.findIndex(blog => blog.id === id);
 
     try {
         const res = await api.request<BlogEditResponse>(`/blogs/${id}`, {
-            method: 'POST',
+            method: 'PUT',
             token: auth.token,
             body: blogEditRequest,
         });
@@ -212,13 +229,14 @@ export const useBlogStore=defineStore("blog",()=>{
             }) as Blog;
             
             blogs.value[index] = updatedBlog;
+            setBlogSuccess(res.message || "Blog post updated successfully.");
             return updatedBlog;
         }
         
         return null;
 
     } catch (error: any) {
-        blogError.value = error.data?.message || "Failed to edit blog post.";
+        setBlogError(error.data?.message || "Failed to edit blog post.");
         return null;
     } finally {
         isEditing.value = false;
@@ -240,6 +258,8 @@ export const useBlogStore=defineStore("blog",()=>{
         const previousBlogs = [...blogs.value];
         isLoading.value=true;
 
+        clearBlogMessages();
+
         // 2. Optimistically update the UI by removing the blog immediately
         blogs.value = blogs.value.filter(blog => blog.id !== id);
 
@@ -247,13 +267,14 @@ export const useBlogStore=defineStore("blog",()=>{
             // 3. Make the actual API call to delete it on the backend
             // Assuming your backend expects a DELETE request to /blogs/:id
             await api.request(`/blogs/${id}`, { method: 'DELETE',token:auth.token });
+            setBlogSuccess("Blog post deleted successfully.");
             
             // Return true or success status if needed
             return true;
         } catch (error:any) {
             // // 4. If the API fails, roll back to the previous state
             // console.error("Failed to delete blog, rolling back:", error);
-            blogError.value = error.data?.message || "Failed to delete blog `{id}`.";
+            setBlogError(error.data?.message || "Failed to delete blog `{id}`.");
             blogs.value = previousBlogs;
             
             return false;
@@ -279,19 +300,19 @@ export const useBlogStore=defineStore("blog",()=>{
      */
     const createBlogSection=async(blogID : number, blogSection : AddBlogSectionRequest):Promise<Blog|null>=> {
         isCreating.value = true;
-        blogError.value = null;
+        clearBlogMessages();
 
 
          const index = blogs.value.findIndex(blog => blog.id === blogID);
          const currentBlog = blogs.value[index];
         if (!currentBlog) {
-            blogError.value = "Blog not found.";
+            setBlogError("Blog not found.");
             isCreating.value = false;
             return null;
         }
         
         try {
-            const res = await api.request<AddBlogSectionResponse>(`/blog/${blogID}/sections`, {
+            const res = await api.request<AddBlogSectionResponse>(`/blogs/${blogID}/sections`, {
                 method: 'POST',
                 token: auth.token,
                 body: blogSection
@@ -306,11 +327,12 @@ export const useBlogStore=defineStore("blog",()=>{
             };
             
             blogs.value[index] = updatedBlog;
+            setBlogSuccess(res.message || "Blog section created successfully.");
             return updatedBlog;
         }
         return null
         } catch (error: any) {
-            blogError.value = error.data?.message || "Failed to create blog post.";
+            setBlogError(error.data?.message || "Failed to create blog section.");
             return null;
         } finally {
             isCreating.value = false;
@@ -340,13 +362,13 @@ export const useBlogStore=defineStore("blog",()=>{
      */
     const editBlogSection = async (blogID: number, sectionID: number, blogSection: EditBlogSectionRequest): Promise<Blog | null> => {
     isEditing.value = true;
-    blogError.value = null;
+    clearBlogMessages();
 
     const index = blogs.value.findIndex(blog => blog.id === blogID);
     const currentBlog = blogs.value[index];
     
     if (!currentBlog) {
-        blogError.value = "Blog not found.";
+        setBlogError("Blog not found.");
         isEditing.value = false;
         return null;
     }
@@ -354,13 +376,13 @@ export const useBlogStore=defineStore("blog",()=>{
     const sectionIndex = currentBlog.sections.findIndex(section => section.id === sectionID);
     
     if (sectionIndex === -1) {
-        blogError.value = "Section not found.";
+        setBlogError("Section not found.");
         isEditing.value = false;
         return null;
     }
     
     try {
-        const res = await api.request<EditBlogSectionResponse>(`/blog/${blogID}/sections/${sectionID}`, {
+        const res = await api.request<EditBlogSectionResponse>(`/blogs/${blogID}/sections/${sectionID}`, {
             method: 'PUT', 
             token: auth.token,
             body: blogSection
@@ -377,11 +399,12 @@ export const useBlogStore=defineStore("blog",()=>{
             };
             
             blogs.value[index] = updatedBlog;
+            setBlogSuccess(res.message || "Blog section updated successfully.");
             return updatedBlog;
         }
         return null;
     } catch (error: any) {
-        blogError.value = error.data?.message || "Failed to edit blog section.";
+        setBlogError(error.data?.message || "Failed to edit blog section.");
         return null;
     } finally {
         isEditing.value = false;
@@ -409,14 +432,14 @@ export const useBlogStore=defineStore("blog",()=>{
     // 1. Save backup of the current state
     const previousBlogs = [...blogs.value];
     isLoading.value = true;
-    blogError.value = null;
+    clearBlogMessages();
 
     // 2. Find the blog and section index
     const blogIndex = blogs.value.findIndex(blog => blog.id === blogID);
     const currentBlog = blogs.value[blogIndex];
     
     if (!currentBlog) {
-        blogError.value = "Blog not found.";
+        setBlogError("Blog not found.");
         isLoading.value = false;
         return false;
     }
@@ -424,7 +447,7 @@ export const useBlogStore=defineStore("blog",()=>{
     const sectionIndex = currentBlog.sections.findIndex(section => section.id === sectionID);
     
     if (sectionIndex === -1) {
-        blogError.value = "Section not found.";
+        setBlogError("Section not found.");
         isLoading.value = false;
         return false;
     }
@@ -440,15 +463,16 @@ export const useBlogStore=defineStore("blog",()=>{
 
     try {
         // 4. Make the actual API call to delete on the backend
-        await api.request(`/blog/${blogID}/sections/${sectionID}`, {
+        await api.request(`/blogs/${blogID}/sections/${sectionID}`, {
             method: 'DELETE',
             token: auth.token,
         });
+        setBlogSuccess("Blog section deleted successfully.");
         
         return true;
     } catch (error: any) {
         // 5. If API fails, roll back to the previous state
-        blogError.value = error.data?.message || `Failed to delete section ${sectionID}.`;
+        setBlogError(error.data?.message || `Failed to delete section ${sectionID}.`);
         blogs.value = previousBlogs;
         
         return false;
@@ -474,6 +498,8 @@ export const useBlogStore=defineStore("blog",()=>{
 
         // blog error
         blogError,
+        blogSuccess,
+        clearBlogMessages,
         // loaders
         isCreating,
         isEditing,

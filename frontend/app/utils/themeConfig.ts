@@ -13,6 +13,12 @@ export interface ThemeTokens {
     'on-background-muted': string;
     error: string;
     'on-error': string;
+    'error-container': string;
+    'on-error-container': string;
+    success: string;
+    'on-success': string;
+    'success-container': string;
+    'on-success-container': string;
     outline: string;
   };
   typography: {
@@ -39,6 +45,12 @@ export const DEFAULT_THEME_CONFIG: Record<ThemeName, ThemeTokens> = {
       'on-background-muted': '#4B5563',
       error: '#EF4444',
       'on-error': '#FFFFFF',
+      'error-container': '#FEE2E2',
+      'on-error-container': '#991B1B',
+      success: '#16A34A',
+      'on-success': '#FFFFFF',
+      'success-container': '#DCFCE7',
+      'on-success-container': '#166534',
       outline: '#E5E7EB',
     },
     typography: {
@@ -61,6 +73,12 @@ export const DEFAULT_THEME_CONFIG: Record<ThemeName, ThemeTokens> = {
       'on-background-muted': '#9CA3AF',
       error: '#F87171',
       'on-error': '#000000',
+      'error-container': '#7F1D1D',
+      'on-error-container': '#FEE2E2',
+      success: '#4ADE80',
+      'on-success': '#052E16',
+      'success-container': '#14532D',
+      'on-success-container': '#DCFCE7',
       outline: '#334155',
     },
     typography: {
@@ -70,6 +88,5 @@ export const DEFAULT_THEME_CONFIG: Record<ThemeName, ThemeTokens> = {
     },
   },
 };
-
 
 

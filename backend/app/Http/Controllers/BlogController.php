@@ -274,6 +274,10 @@ class BlogController extends Controller
                 ]
             );
         }
+
+        $blog->media()->sync($request->input('media_ids', []));
+        $blog->load(['author', 'media', 'translations']);
+
         $languages = Language::all();
 
          return response()->json([
@@ -303,7 +307,7 @@ class BlogController extends Controller
                             ];
                         }),
                     ],
-        ], 201);
+        ], 200);
     }
 
     #[OA\Get(

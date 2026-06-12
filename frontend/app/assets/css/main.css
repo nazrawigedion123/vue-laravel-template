@@ -277,6 +277,14 @@ h2 {
   --text-primary: #1e293b;
   --text-muted: #64748b;
   --color-primary: #3b82f6;
+  --color-error: #ef4444;
+  --color-on-error: #ffffff;
+  --color-error-container: #fee2e2;
+  --color-on-error-container: #991b1b;
+  --color-success: #16a34a;
+  --color-on-success: #ffffff;
+  --color-success-container: #dcfce7;
+  --color-on-success-container: #166534;
   --border-color: #e2e8f0;
   --navbar-bg: #ffffff;
   --card-bg: #ffffff;

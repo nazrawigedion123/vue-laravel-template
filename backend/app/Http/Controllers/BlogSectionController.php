@@ -12,6 +12,58 @@ use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
 class BlogSectionController extends Controller{
 
+    private function normalizeSectionTranslations(Request $request, Language $defaultLanguage): ?JsonResponse
+    {
+        if (!$request->has('translations')) {
+            return null;
+        }
+
+        $translations = $request->input('translations');
+
+        if (is_string($translations)) {
+            $decoded = json_decode($translations, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return response()->json([
+                    'message' => 'The translations field contains invalid JSON.',
+                    'errors' => ['translations' => ['JSON parse error: ' . json_last_error_msg()]]
+                ], 422);
+            }
+
+            $translations = $decoded;
+        }
+
+        if (!is_array($translations)) {
+            return null;
+        }
+
+        $translations = array_map(function ($item) {
+            if (is_string($item)) {
+                $decoded = json_decode($item, true);
+                return json_last_error() === JSON_ERROR_NONE ? $decoded : $item;
+            }
+
+            return $item;
+        }, $translations);
+
+        $translations = array_values(array_filter($translations, function ($translation) use ($defaultLanguage) {
+            if (!is_array($translation)) {
+                return false;
+            }
+
+            if ((int) ($translation['language_id'] ?? 0) === $defaultLanguage->id) {
+                return true;
+            }
+
+            return trim((string) ($translation['title'] ?? '')) !== ''
+                || trim((string) ($translation['content'] ?? '')) !== '';
+        }));
+
+        $request->merge(['translations' => $translations]);
+
+        return null;
+    }
+
 
 
 
@@ -70,33 +122,11 @@ class BlogSectionController extends Controller{
         $blog = Blog::findOrFail($id);
 
         $languages = Language::all();
+        $defaultLanguage = Language::where('default', true)->firstOrFail();
         Gate::authorize('own-blog', $blog);
 
-
-        if ($request->has('translations')) {
-            $translations = $request->translations;
-
-            if (is_string($translations)) {
-                $decoded = json_decode($translations, true);
-                if (json_last_error() !== JSON_ERROR_NONE) {
-                    return response()->json([
-                        'message' => 'The translations field contains invalid JSON.',
-                        'errors' => ['translations' => ['JSON parse error: ' . json_last_error_msg()]]
-                    ], 422);
-                }
-                $translations = $decoded;
-            }
-
-            if (is_array($translations)) {
-                $translations = array_map(function ($item) {
-                    if (is_string($item)) {
-                        $decoded = json_decode($item, true);
-                        return json_last_error() === JSON_ERROR_NONE ? $decoded : $item;
-                    }
-                    return $item;
-                }, $translations);
-                $request->merge(['translations' => $translations]);
-            }
+        if ($response = $this->normalizeSectionTranslations($request, $defaultLanguage)) {
+            return $response;
         }
 
         $request->validate([
@@ -104,11 +134,25 @@ class BlogSectionController extends Controller{
             // 'image' => 'nullable|image|max:2048',
             'translations' => 'required|array|min:1',
             'translations.*.language_id' => 'required|exists:languages,id',
-            'translations.*.title' => 'required|string|max:200',
-            'translations.*.content' => 'required|string',
+            'translations.*.title' => 'nullable|string|max:200',
+            'translations.*.content' => 'nullable|string',
              'media_ids' => 'nullable|array',
             'media_ids.*' => 'exists:medias,id'
         ]);
+
+        $defaultTranslation = collect($request->input('translations', []))
+            ->firstWhere('language_id', $defaultLanguage->id);
+
+        if (
+            !$defaultTranslation
+            || trim((string) ($defaultTranslation['title'] ?? '')) === ''
+            || trim((string) ($defaultTranslation['content'] ?? '')) === ''
+        ) {
+            return response()->json([
+                'message' => "The title and content for the default language ({$defaultLanguage->name}) are required.",
+                'errors' => ['translations' => ["Missing default language title/content (ID: {$defaultLanguage->id})"]]
+            ], 422);
+        }
 
         $imagePath = $request->file('image') ? $request->file('image')->store('blog_sections', 'public') : null;
 
@@ -118,7 +162,11 @@ class BlogSectionController extends Controller{
         ]);
 
         foreach ($request->translations as $translationData) {
-            $section->translations()->create($translationData);
+            $section->translations()->create([
+                'language_id' => $translationData['language_id'],
+                'title' => $translationData['title'] ?? '',
+                'content' => $translationData['content'] ?? '',
+            ]);
         }
         $section->media()->sync($request->input('media_ids'));
 
@@ -207,33 +255,11 @@ class BlogSectionController extends Controller{
     $blog = Blog::findOrFail($blogId);
     Gate::authorize('own-blog', $blog);
     $languages = Language::all();
+    $defaultLanguage = Language::where('default', true)->firstOrFail();
     $section = $blog->sections()->where('id', $sectionId)->firstOrFail();
 
-    // Handle translations if present (same logic as addSection)
-    if ($request->has('translations')) {
-        $translations = $request->translations;
-
-        if (is_string($translations)) {
-            $decoded = json_decode($translations, true);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                return response()->json([
-                    'message' => 'The translations field contains invalid JSON.',
-                    'errors' => ['translations' => ['JSON parse error: ' . json_last_error_msg()]]
-                ], 422);
-            }
-            $translations = $decoded;
-        }
-
-        if (is_array($translations)) {
-            $translations = array_map(function ($item) {
-                if (is_string($item)) {
-                    $decoded = json_decode($item, true);
-                    return json_last_error() === JSON_ERROR_NONE ? $decoded : $item;
-                }
-                return $item;
-            }, $translations);
-            $request->merge(['translations' => $translations]);
-        }
+    if ($response = $this->normalizeSectionTranslations($request, $defaultLanguage)) {
+        return $response;
     }
 
     // Validate request
@@ -241,11 +267,28 @@ class BlogSectionController extends Controller{
         'order' => 'sometimes|integer', // 'sometimes' makes it optional for updates
         'translations' => 'sometimes|array|min:1',
         'translations.*.language_id' => 'required_with:translations|exists:languages,id',
-        'translations.*.title' => 'required_with:translations|string|max:200',
-        'translations.*.content' => 'required_with:translations|string',
+        'translations.*.title' => 'nullable|string|max:200',
+        'translations.*.content' => 'nullable|string',
         'media_ids' => 'nullable|array',
         'media_ids.*' => 'exists:medias,id'
     ]);
+
+    $defaultTranslation = collect($request->input('translations', []))
+        ->firstWhere('language_id', $defaultLanguage->id);
+
+    if (
+        $request->has('translations')
+        && (
+            !$defaultTranslation
+            || trim((string) ($defaultTranslation['title'] ?? '')) === ''
+            || trim((string) ($defaultTranslation['content'] ?? '')) === ''
+        )
+    ) {
+        return response()->json([
+            'message' => "The title and content for the default language ({$defaultLanguage->name}) are required.",
+            'errors' => ['translations' => ["Missing default language title/content (ID: {$defaultLanguage->id})"]]
+        ], 422);
+    }
 
     // Handle image update if provided
     $imagePath = null;
@@ -282,12 +325,16 @@ class BlogSectionController extends Controller{
             if ($translation) {
                 // Update existing translation
                 $translation->update([
-                    'title' => $translationData['title'],
-                    'content' => $translationData['content'],
+                    'title' => $translationData['title'] ?? '',
+                    'content' => $translationData['content'] ?? '',
                 ]);
             } else {
                 // Create new translation
-                $section->translations()->create($translationData);
+                $section->translations()->create([
+                    'language_id' => $translationData['language_id'],
+                    'title' => $translationData['title'] ?? '',
+                    'content' => $translationData['content'] ?? '',
+                ]);
             }
         }
     }
