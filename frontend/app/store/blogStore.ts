@@ -10,9 +10,9 @@ import type{ Blog ,
             AddBlogSectionResponse,
             EditBlogSectionRequest,
             EditBlogSectionResponse} from "~/types/blog"
+
+
 import { useAuthStore } from "./authStore";
-
-
 
 
 export const useBlogStore=defineStore("blog",()=>{
@@ -390,6 +390,21 @@ export const useBlogStore=defineStore("blog",()=>{
 
 
 
+    /**
+     * The `removeBlogSection` function asynchronously removes a section from a blog, updating the UI
+     * optimistically and handling API errors by rolling back to the previous state.
+     * @param {number} blogID - The `blogID` parameter in the `removeBlogSection` function refers to
+     * the unique identifier of the blog from which you want to remove a section. This ID is used to
+     * locate the specific blog in the list of blogs and then find the section within that blog that
+     * needs to be removed.
+     * @param {number} sectionID - The `sectionID` parameter in the `removeBlogSection` function refers
+     * to the unique identifier of the section within a specific blog that you want to remove. This ID
+     * is used to locate the specific section within the blog's sections array and perform the deletion
+     * operation either on the frontend UI optimistically or
+     * @returns The `removeBlogSection` function returns a `Promise<boolean>`. The function returns
+     * `true` if the section was successfully deleted, and `false` if there was an error during the
+     * deletion process.
+     */
     const removeBlogSection = async (blogID: number, sectionID: number): Promise<boolean> => {
     // 1. Save backup of the current state
     const previousBlogs = [...blogs.value];
