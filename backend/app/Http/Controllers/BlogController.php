@@ -8,7 +8,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use OpenApi\Attributes as OA;
-
+use PHPUnit\Logging\OpenTestReporting\Status;
 
 class BlogController extends Controller
 {
@@ -19,6 +19,7 @@ class BlogController extends Controller
         parameters: [
             new OA\Parameter(name: 'page', in: 'query', description: 'Page number', required: false, schema: new OA\Schema(type: 'integer', default: 1)),
             new OA\Parameter(name: 'size', in: 'query', description: 'Items per page', required: false, schema: new OA\Schema(type: 'integer', default: 10)),
+            new OA\Parameter(name: 'status', in: 'query', description: 'to filter published', required: false, schema: new OA\Schema(type: 'string', default:"")),
         ],
         responses: [
             new OA\Response(
@@ -39,13 +40,44 @@ class BlogController extends Controller
     {
         $languages = Language::all();
         $size = $request->query('size', 10);
+        $status=$request->query('status','');
 
-        $blogs = Blog::with([
+        $query = Blog::with([
             'translations.language',
             'author',
+            'media', 
+            'sections.media',
             'sections.translations.language',
             'comments.user'
-        ])->paginate($size);
+        ]);
+
+        if ($status === 'all') {
+            $user = auth('api')->user();
+            if (!$user || !Gate::forUser($user)->allows('manage-blog')) {
+                return response()->json(['message' => 'Unauthorized'], 403);
+            }
+
+            // Superusers see everything, others see only their own
+            if (!$user->is_superuser) {
+                $query->where('author_id', $user->id);
+            }
+
+            $query->orderByRaw('CASE 
+                WHEN published_at IS NULL THEN 1 
+                WHEN published_at > NOW() THEN 2 
+                ELSE 3 
+            END ASC')
+            ->orderBy('published_at', 'desc');
+        } else {
+            $query->whereNotNull('published_at')->where('published_at', '<=', now());
+        }
+
+        $blogs = $query->latest('id')->paginate($size);
+
+        
+        
+
+
 
         $processedBlogs = $blogs->getCollection()->map(function ($blog) use ($languages) {
             return [
@@ -108,7 +140,7 @@ class BlogController extends Controller
         return response()->json([
             'data' => $processedBlogs,
             'currentPage' => $blogs->currentPage(),
-            'totalPage' => $blogs->lastPage(),
+            'totalPages' => $blogs->lastPage(),
             'totalItems' => $blogs->total(),
         ]);
     }

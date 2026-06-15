@@ -46,40 +46,235 @@ export const useBlogStore=defineStore("blog",()=>{
     const isEditing =ref(false);
     const isLoading=ref(false);
 
+    //pagination trackers
+    const managementMeta = ref({ currentPage: 1, totalPages: 1, totalItems: 0 });
+    const publicMeta = ref({ currentPage: 1, totalPages: 1, totalItems: 0 });
+
+    
+
 
     // blog savers    
     const blogs=ref<Blog[]>([])
 
 
+     // blog savers    
+    const publishedBlogs=ref<Blog[]>([])
 
+    let activeManagementPromise: Promise<Blog[] | null> | null = null;
+let activePublicPromise: Promise<Blog[] | null> | null = null;
 
+const lastManagementKey = ref('');
+const lastPublicKey = ref('');
 
     /**
-     * The function `getBlogs` asynchronously fetches blogs data from an API, handles errors, and
-     * updates loading state accordingly.
-     * @returns The `getBlogs` function is returning the `blogs.value` after fetching the blogs data
-     * from the API. If an error occurs during the API request, it will return `null`.
+     * Fetches management blogs (All drafts, scheduled, and published posts for the logged-in author).
      */
-    const getBlogs=async()=>{
-        isLoading.value=true;
-        clearBlogMessages();
+    const getBlogs = async (page: number = 1, size: number = 10, forceRefresh: boolean = false) => {
+    const cacheKey = `${page}-${size}`;
+    
+    // 1. Return local cache if parameters match and data exists
+    if (!forceRefresh && lastManagementKey.value === cacheKey && blogs.value.length > 0) {
+        return blogs.value;
+    }
+    
+    // 2. Deduplicate matching background promises running at the same millisecond
+    if (activeManagementPromise && lastManagementKey.value === cacheKey) {
+        return activeManagementPromise;
+    }
 
-        try{
+    lastManagementKey.value = cacheKey;
+    isLoading.value = true;
+    clearBlogMessages();
+
+    activeManagementPromise = (async () => {
+        try {
+            // Safe URL builder
+            const params = new URLSearchParams({
+                status: 'all',
+                page: page.toString(),
+                size: size.toString()
+            });
+
+            const res = await api.request<BlogsResponse>(`/blogs?${params.toString()}`, {
+                method: 'GET',
+                token: auth.token
+            });
             
-            const res=await api.request<BlogsResponse>('/blogs')
-            blogs.value=res.data
-            return blogs.value
+            // Only update local state if this request matches the LAST clicked page combo
+            if (lastManagementKey.value === cacheKey) {
+                blogs.value = res.data;
+                managementMeta.value = {
+                    currentPage: res.currentPage,
+                    totalPages: res.totalPages,
+                    totalItems: res.totalItems
+                };
+            }
+            return res.data;
 
-        }catch(error:any){
-            setBlogError(error.data?.message || "Failed to fetch blogs.");
-            return null
-
-        }finally{
-
-            isLoading.value=false
+        } catch (error: any) {
+            if (lastManagementKey.value === cacheKey) {
+                setBlogError(error.data?.message || "Failed to fetch all management blogs.");
+            }
+            return null;
+        } finally {
+            activeManagementPromise = null;
+            if (lastManagementKey.value === cacheKey) {
+                isLoading.value = false;
+            }
         }
+    })();
 
+    return activeManagementPromise;
     };
+
+    /**
+     * Public feed fetcher. Fetches only published posts.
+     */
+    const getPublishedBlogs = async (page: number = 1, size: number = 10, forceRefresh: boolean = false) => {
+    const cacheKey = `${page}-${size}`;
+    
+    if (!forceRefresh && lastPublicKey.value === cacheKey && publishedBlogs.value.length > 0) {
+        return publishedBlogs.value;
+    }
+    
+    if (activePublicPromise && lastPublicKey.value === cacheKey) {
+        return activePublicPromise;
+    }
+
+    lastPublicKey.value = cacheKey;
+    isLoading.value = true;
+    clearBlogMessages();
+
+    activePublicPromise = (async () => {
+        try {
+            const params = new URLSearchParams({
+                status: 'published',
+                page: page.toString(),
+                size: size.toString()
+            });
+
+            const res = await api.request<BlogsResponse>(`/blogs?${params.toString()}`, {
+                method: 'GET'
+            });
+
+            if (lastPublicKey.value === cacheKey) {
+                publishedBlogs.value = res.data;
+                publicMeta.value = {
+                    currentPage: res.currentPage,
+                    totalPages: res.totalPages,
+                    totalItems: res.totalItems
+                };
+            }
+            return res.data;
+
+        } catch (error: any) {
+            if (lastPublicKey.value === cacheKey) {
+                setBlogError(error.data?.message || "Failed to fetch published blogs.");
+            }
+            return null;
+        } finally {
+            activePublicPromise = null;
+            if (lastPublicKey.value === cacheKey) {
+                isLoading.value = false;
+            }
+        }
+    })();
+
+    return activePublicPromise;
+};
+
+
+
+
+
+    // /**
+    //  * The function `getBlogs` asynchronously fetches blogs data from an API, handles errors, and
+    //  * updates loading state accordingly.
+    //  * @returns The `getBlogs` function is returning the `blogs.value` after fetching the blogs data
+    //  * from the API. If an error occurs during the API request, it will return `null`.
+    //  */
+    // const getBlogs = async (page: number = 1, size: number = 10) => {
+
+    //     isLoading.value = true;
+
+    //     clearBlogMessages();
+
+
+    //     try {
+
+    //         // Appends query strings directly, including status=all
+
+    //         const res = await api.request<BlogsResponse>(`/blogs?status=all&page=${page}&size=${size}`, {
+
+    //             method: 'GET',
+
+    //             token: auth.token
+
+    //         });
+
+            
+
+    //         blogs.value = res.data;
+
+    //         managementMeta.value = {
+
+    //             currentPage: res.currentPage,
+
+    //             totalPages: res.totalPages,
+
+    //             totalItems: res.totalItems
+
+    //         };
+
+    //         return res.data;
+
+
+    //     } catch (error: any) {
+
+    //         setBlogError(error.data?.message || "Failed to fetch all management blogs.");
+
+    //         return null;
+
+    //     } finally {
+
+    //         isLoading.value = false;
+
+    //     }
+
+    // };
+
+
+    // /**
+    //  * Public feed fetcher. Fetches only published posts, no authentication tokens required.
+    //  */
+    // const getPublishedBlogs = async (page: number = 1, size: number = 10) => {
+    //     isLoading.value = true;
+    //     clearBlogMessages();
+
+    //     try {
+    //         // Appends query strings explicitly forcing published view
+    //         const res = await api.request<BlogsResponse>(`/blogs?status=published&page=${page}&size=${size}`, {
+    //             method: 'GET'
+    //         });
+
+    //         publishedBlogs.value = res.data;
+    //         publicMeta.value = {
+    //             currentPage: res.currentPage,
+    //             totalPages: res.totalPages,
+    //             totalItems: res.totalItems
+    //         };
+    //         return res.data;
+
+    //     } catch (error: any) {
+    //         setBlogError(error.data?.message || "Failed to fetch published blogs.");
+    //         return null;
+    //     } finally {
+    //         isLoading.value = false;
+    //     }
+    // };
+
+
+
 
 
 
@@ -483,9 +678,13 @@ export const useBlogStore=defineStore("blog",()=>{
 
     return{
         // saved blog
+        publishedBlogs,
         blogs,
+        publicMeta,
+        managementMeta,
         // fetchBlogs
         getBlogs,
+        getPublishedBlogs,
         getBlogById,
         // actions on blog
         removeBlog,

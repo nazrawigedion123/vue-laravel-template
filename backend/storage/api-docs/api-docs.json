@@ -248,6 +248,16 @@
                             "type": "integer",
                             "default": 10
                         }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "description": "to filter published",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "default": ""
+                        }
                     }
                 ],
                 "responses": {

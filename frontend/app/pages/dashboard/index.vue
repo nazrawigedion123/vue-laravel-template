@@ -12,7 +12,8 @@
         </div>
         <div class="stat-info">
           <p class="stat-label">{{ stat.label }}</p>
-          <p class="stat-value">{{ stat.value }}</p>
+          <p v-if="isLoading" class="stat-value loading-skeleton">...</p>
+          <p v-else class="stat-value">{{ stat.value }}</p>
         </div>
         <div class="stat-trend" :class="stat.trend > 0 ? 'trend-up' : 'trend-down'">
           {{ stat.trend > 0 ? '↑' : '↓' }} {{ Math.abs(stat.trend) }}%
@@ -47,6 +48,9 @@
 </template>
 
 <script setup lang="ts">
+import { useBlogStore } from '~/store/blogStore'
+import { storeToRefs } from 'pinia'
+
 definePageMeta({
   layout: 'dashboard',
   middleware: ['admin']
@@ -54,13 +58,64 @@ definePageMeta({
 
 const { user } = useAuth()
 
-const stats = [
-  { label: 'Total Blogs', value: '24', icon: '📝', color: '#3b82f6', trend: 12 },
-  { label: 'Total Views', value: '1.2k', icon: '👁️', color: '#10b981', trend: 5 },
-  { label: 'Comments', value: '142', icon: '💬', color: '#8b5cf6', trend: -2 },
-  { label: 'System Health', value: '100%', icon: '🛡️', color: '#f59e0b', trend: 0 },
-]
+// 1. Initialize the blog store
+const blogStore = useBlogStore()
+const { managementMeta, publicMeta, isLoading } = storeToRefs(blogStore)
+
+// 2. Fetch the meta counters on component mount
+onMounted(async () => {
+  // Pass page=1, size=1 to hit the endpoints efficiently without downloading large collections
+  await Promise.all([
+    blogStore.getBlogs(1, 10),        // Updates managementMeta (All drafts + published)
+    blogStore.getPublishedBlogs(1, 10) // Updates publicMeta (Only published items)
+  ])
+})
+
+// 3. Keep stats computed so they react automatically as meta variables populate
+const stats = computed(() => [
+  { 
+    label: 'Total Blogs (Your Posts)', 
+    value: managementMeta.value.totalItems.toString(), 
+    icon: '📝', 
+    color: '#3b82f6', 
+    trend: 12 
+  },
+  { 
+    label: 'Live Published Blogs', 
+    value: publicMeta.value.totalItems.toString(), 
+    icon: '🌐', 
+    color: '#10b981', 
+    trend: 5 
+  },
+  { 
+    label: 'Comments', 
+    value: '142', // Statically mocked until comment statistics endpoints exist
+    icon: '💬', 
+    color: '#8b5cf6', 
+    trend: -2 
+  },
+  { 
+    label: 'System Health', 
+    value: '100%', 
+    icon: '🛡️', 
+    color: '#f59e0b', 
+    trend: 0 
+  },
+])
 </script>
+
+<style scoped>
+/* Optional styling enhancement for loading state */
+.loading-skeleton {
+  animation: pulse 1.5s infinite ease-in-out;
+  color: #9ca3af !important;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+</style>
 
 <style scoped>
 .dashboard-overview {

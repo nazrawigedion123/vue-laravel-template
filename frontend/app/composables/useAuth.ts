@@ -5,7 +5,12 @@ export const useAuth=()=>{
 
   const{token,user,loading,isAuthenticated,isSuperuser,isStaff,hasDashboardAccess,canCreateBlog,}=storeToRefs(authStore)
 
-  const {loadUser,login,register,logout,loginWithGoogle,handleGoogleCallback}=authStore
+  const {loadUser,login,register,loginWithGoogle,handleGoogleCallback}=authStore
+
+  const logout = async () => {
+    await authStore.logout()
+    return navigateTo('/')
+  }
 
   return{
     token,
